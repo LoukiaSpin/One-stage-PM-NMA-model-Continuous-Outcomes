@@ -1,0 +1,282 @@
+---
+title: "One-stage pattern-mixture models for missing continuous outcome data in network meta-analysis"
+author: "Loukia M. Spineli (maintainer), Chrysostomos Kalyvas, Katerina Papadimitropoulou"
+date: "27 May 2020, version 1.0"
+output: 
+ html_document:
+   toc: true
+   toc_depth: 2
+   toc_float: true
+   smooth_scroll: true
+   theme: journal
+   highlight: textmate
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+***
+
+## Introduction {.tabset .tabset-fade .tabset-pills}
+
+Primary continuous outcomes are less widespread in systematic reviews for being often complex to interpret (e.g. psychiatric rating scales) and more labour-intensive to measure [1]. However, continuous outcomes play an important role in decision-making and clinical practice. Similar to binary outcomes, continuous outcomes are also prone to missing outcome data (MOD). To handle missing continuous outcome data (MCOD) on a trial-by-trial basis, the reviewers need to extract information on the mean and variance of the continuous outcome (e.g. change in pain intensity scores) as measured in the participants who completed the trial, and the number of missing participants out of the total randomised in each arm of every trial [2]. Nevertheless, the ability to extract all necessary information to handle MCOD properly dependends on the reporting quality of the eligible trials [3].
+ 
+### Exclusion and imputation of missing continuous outcome data
+
+Regardless of outcome type, popular methods to handle aggregate MOD in pairwise and network meta-analysis are __exclusion__ and __imputation__ [4,5]. __Exclusion__, as the name implies, reduces the analysed sample to those participants completing the trial. __Exclusion__ is plausible when the analyst can defend that the reasons for MCOD are not associated with any observed and unobserved variables [6]. In this case, the distribution of the outcome among the completers would be the same with the distribution of the outcome among missing participants: this is the _missing completely at random_ (MCAR) assumption. In practice, the MCAR assumption is difficult to defend for aggregate MOD, especially, in the absence of individual patient data which would have given us access to the baseline characteristics of the participants. On the other hand, __imputation__ retains the randomised sample of the trial by making specific assumptions about the missing outcomes [6]. Typically, the uncertainty about these assumptions is not taken into account in the analysis. As a result, the estimated treatment effects can be spuriously precise, especially, when participant loss is considerable (e.g. above 20%) [7]. The three-step imputation approach by Ebrahim et al. [8,9] is an  example of such an imputation approach for MCOD. The authors fixed the missing observations before analysis using information from the included trials to determine the scenarios for the imputed means and standard deviations.  
+
+## Modelling observed and missing continuous outcome data {.tabset .tabset-fade .tabset-pills}
+
+### The pattern-mixture model
+
+Mavridis et al. [10] first proposed a two-stage approach that, first, models the observed and missing continuous outcomes simultaneously in each arm of every trial via a pattern-mixture model to obtain adjusted within-trial results (treatment effect and standard error), and then, it pools the trials using a pairwise or network meta-analysis model. The pattern-mixture model distinguishes the participants to those who remained to the trial and those who left the trial early for any reason. Then, in each subgroup, the mean and variance of the outcome is considered. However, this information is not known in the subgroup with the missing participants (except if these participants have been followed-up after leaving the trial). With $y_{ik}$ and $y^o_{ik}$ we define the (unknown) mean outcome in all randomised participants and the mean outcome as measured in the participants who completed arm $k$ of trial $i$, respectively, where 
+
+<div align = "center">$y_{ik}\sim {\sf Normal}(\theta_{ik}, v_{ik})$ and $y^o_{ik}\sim {\sf Normal}(\theta^o_{ik}, v^o_{ik})$</div>\
+and with $m_{ik}$ we define the number of missing participants out of the $n_{ik}$ randomised in arm $k$ of trial $i$, where 
+
+<div align = "center">$m_{ik} \sim {\sf Binom}(n_{ik},  q_{ik}).$</div> \
+The pattern-mixture model for a continuous outcome in arm $k$ of trial $i$ is defined as follows: 
+
+\begin{equation} 
+\theta_{ik} = \theta^o_{ik}(1 - q_{ik}) + \theta^m_{ik}q_{ik}
+\label{eq:theta}
+\tag{1}
+\end{equation} 
+
+where $\theta^m_{ik}$ is the __missingness parameter__ and it indicates the underlying mean outcome of the missing participants in arm $k$ of trial $i$. Being an absolute measure, $\theta^m_{ik}$ does not reflect the missingness process. 
+
+### Two missingness parameters
+
+Mavridis et al. [10] proposed two missingness parameters for MCOD that faciliate the determination of an informative prior distribution that reflects our prior beliefs about the missingness mechanism. 
+
+#### <ins>Informative missingness difference of means (IMDoM)</ins>
+
+The IMDoM parameter is defined as the difference between the mean outcome among missing participants and the mean outcome among those completing the trial:
+
+\begin{equation} 
+\phi_{ik} = \theta^m_{ik} - \theta^o_{ik}
+\end{equation} 
+
+By replacing $\theta^m_{ik} = \phi_{ik} + \theta^o_{ik}$ and re-arranging Eq. $\eqref{eq:theta}$, we obtain:
+
+\begin{equation} 
+\theta^o_{ik} = \theta_{ik} - \phi_{ik}q_{ik}
+\end{equation} 
+
+#### <ins>Informative missingness ratio of means (IMRoM)</ins>
+
+The IMRoM parameter is defined as the ratio of the mean outcome among the missing participants to the mean outcome among those completing the trial:
+
+\begin{equation} 
+e^{\omega_{ik}} = \frac{\theta^m_{ik}}{\theta^o_{ik}}
+\end{equation} 
+
+To ensure that $0 \le \theta^m_{ik} \le 1$ or equivalently that $\log(\theta^m_{ik}) \le 0$, we need to impose an upper bound constrain on $\omega_{ik}$:
+
+\begin{equation} 
+\omega_{ik}^{U} = min(\omega_{ik}, -\log(\theta^m_{ik}))
+\end{equation} 
+
+
+Then, by replacing $\theta^m_{ik} = min(e^{\omega_{ik}}\theta^o_{ik}, 1)$ and re-arranging Eq. $\eqref{eq:theta}$, we obtain:
+
+\begin{equation} 
+\theta^o_{ik} = 
+    \begin{cases}
+      \frac{\theta_{ik}}{1 - q_{ik}(1 - e^{\omega_{ik}})} & \text{if $\theta^m_{ik} = e^{\omega_{ik}}\theta^o_{ik}$ }\\
+      \frac{\theta_{ik} - q_{ik}}{1 - q_{ik}} & \text{if $\theta^m_{ik} = 1$}\\
+    \end{cases} 
+\end{equation} 
+
+Then, a normal prior distribution is a natural choice for both missingness parameters:
+
+<div align = "center">$\phi_{ik}, \omega_{ik}\sim {\sf Normal}(\Delta_{ik}, \sigma^2_{ik})$</div> \
+where $\Delta_{ik}$ implies our belief about the missingness process on average, and $\sigma^2_{ik}$ indicates our uncertainty about this prior belief. Specifically:
+
++ $\Delta_{ik} > 0$ indicates that a larger outcome on average is more likely to occur among missing participants rather than completers in arm $k$ of trial $i$;
++ $\Delta_{ik} < 0$ indicates that a larger outcome on average is less likely to occur among missing participants rather than completers in arm $k$ of trial $i$; and
++ $\Delta_{ik} = 0$ indicates the missing at random (MAR) assumption on average in arm $k$ of trial $i$.
+
+We consider $\sigma^2_{ik} \ge 3^2$ and $\sigma^2_{ik} < 1^2$ to be *conservative* and *liberal*, respectively, regarding our prior belief for $\phi_{ik}$, and correspondigly $\sigma^2_{ik} \ge 0.4^2$ and $\sigma^2_{ik} < 0.2^2$ for $\omega_{ik}$.  For $\sigma^2_{ik} \ge 3^2$ and $\sigma^2_{ik} \ge 0.4^2$, the between-trial variance becomes zero and the standard error of the summary treatment effect increases because the within-trial standard error increases further (Figure 5 in [10]). 
+
+### Structural assumptions for the missingness parameters
+
+The following three assumptions can be made for the missingness parameters [11,12]:
+
++ *common-within-network* assumption implies the missingness mechanism to be the same in the whole network, and only one parameter is estimated per network;
++ *trial-specific* assumption implies that the missingness mechanisms are different across trials but assumed to be the same in the compared arms resulting in down-weighting trials with unbalanced MCOD. This assumption estimates as many missingness parameters as the number of included trials;
++ *intervention-specific* assumption allows the missingness parameter to be different across interventions but shared across trials, thus resulting in down-weighting trials with higher total MCOD. This assumption estimates as many missingness parameters as the number of interventions in a network.
+
+Then, for each assumption, the prior distribution of the missingness parameter can be structured to be either identical (i.e. constant) or hierarchical (i.e. exhangeable). An additional, more flexible structure is the *independent structure* where the missingness mechanism is considered to differ across arms and trials. This corresponds to estimating one missingness parameter for each arm of every trial. Then, under the independent structure, the missingness parameters may be further assumed to be either *uncorrelated* or *correlated* across the arms of every trial with correlation $corr(\phi_{ij}, \phi_{il}) = corr(\omega_{ij}, \omega_{il}) = 0.5$ (following Mavridis et al. [10]) for $j, l \in \{1, 2, ...,a_{i}\}$ with $j \neq l$ and $a_{i}$ being the number of arms in trial $i$.   
+
+## Effect measures for continuous outcome 
+
+In systematic reviews, mean difference and standardised mean difference are the most popular effect measures for continuous outcomes [13, 14]. A less popular effect measure for continuous outcomes is the ratio of (arithmetic) means which has been advocated for its ease of interpretation (as compared to  standardised mean difference) and its ability to pool trials with outcomes in different units (contrary to mean difference) [15]. The following Table presents the link function for each effect measure:
+
+
+Effect measure               | Link function
+-----------------------------|----------------------------------------------------------
+Mean difference              | $\theta_{ik} = u_{i} + \delta_{i,k1}I\{k \neq 1\}$
+Standardised mean difference | $\theta_{ik} = u_{i} + S_{i}\delta_{i,k1}I\{k \neq 1\}$
+Ratio of means               | $\theta_{ik} = u_{i}e^{\delta_{i,k1}I\{k \neq 1\}}$
+
+where $u_{i} = \theta_{i1}$ is the underlying mean in the baseline arm of trial $i$, $\delta_{i,k1}$ is the random-effect that indicates the effect measure between arm $k$ and baseline arm in trial $i$, and $S_{i}$ is the pooled standard deviation in trial $i$. Assuming that the pooled standard deviation among the missing participants is equal to the pooled standard deviation among the completers (MAR assumption), we may assign the following gamma prior distribution on the pooled variance for the randomised sample of trial $i$ [16]:
+
+<div align = "center">$S^2_{i}\sim {\sf Gamma}\left(\frac{\sum_{n=1}^{a_{i}}(n_{ik} - 1)}{2}, \frac{\sum_{n=1}^{a_{i}} (n_{ik} - 1)}{2\sigma^2_{i}}\right)$</div>\
+
+with $\sigma_{i}$ being the pooled standard deviation based on the completers of trial $i$.
+
+## Bayesian random-effects network meta-analysis
+
+In a network of $N$ trials and $T$ interventions, it is commonly assumed for the random-effects that 
+
+<div align = "center">$\delta_{i,k1}\sim {\sf Normal}\left(\mu_{t_{ik},t_{i1}}, \tau^2\right)$</div>\
+
+where $\mu_{t_{ik},t_{i1}}$ refers to the summary effect of intervention $t_{ik}$ against intervention $t_{i1}$, and $\tau^2$ is the between-trial variance which is typically assumed common in all observed comparisons to aid the estimation of the parameter when there are comparisons with few trials. Then, in multi-arm trials, the correlation between pairs of random-effects is equal to 0.5 [17]. Note that $t_{ik}$ indicates the intervention in arm $k$ of trial $i$. To estimate the effects of all possible comparisons, it suffices to estimate the basic parameters (i.e. comparisons with the reference intervetion of the network; here, A), and then use the consistency equation (which is a linear combination of the basic parameters under the assumption of consistent direct and indirect evidence in a closed loop of interventions [18]) to obtain the remaining comparisons [19]:  
+
+<div align = "center">$\mu_{t_{ik},t_{i1}} = \mu_{t_{ik},A} - \mu_{t_{i1},A}$ with $t_{ik}, t_{i1} \in \{B, C, ...,T\}$.</div>\
+
+The posterior distribution of the basic parameters can be used to inform the probability of a specific rank for each intervention as well as the surface under the cumulative ranking curve (SUCRA; an omnibus measure to define the hierarchy of the interventions) [20]. For the location parameters, $u_{i}$ and $\mu_{t_{ik},t_{i1}}$, we may consider a flat normal prior distribution $Normal(0, 100^2)$, and for $\tau$, we may assign a half-normal prior distribution $Normal(0, 1)I(0,)$. Note that Rhodes et al. [13] have already proposed empirical prior for $\tau^2$ in the case of standardised mean difference only. 
+
+***
+
+## An R function to handle missing continuous outcome data in network meta-analysis {.tabset .tabset-fade .tabset-pills}
+
+We have developed the R function <span style="color: blue;">`NMA.IMDOM.IMROM.PM.model()`</span> to handle MCOD in network meta-analysis efficiently using the informative missingness parameters and effect measures described above. The IMDoM parameter is intuitively related to the mean difference and the standardised mean difference, whereas the IMRoM parameter can be used in conjunction with the ratio of means in the logarithmic scale. Before using the R function, it is necessary to install the libraries `dplyr` and `R2jags` to allow the function to perform a required data management and to implement Bayesian analysis in [JAGS](https://sourceforge.net/projects/mcmc-jags/) (in case JAGS is not downloaded yet). The R function `NMA.IMDOM.IMROM.PM.model()` can be sourced using the following code:
+
+```{r sourceCode, echo = TRUE}
+source("./Pattern-mixture IMDOM & IMROM models/R scripts/Functions/Full NMA model/NMA IMDOM & IMROM Pattern-mixture models_function.R")
+```
+
+To obtain the necessary results for all assumptions and structures about the missingness parameter, we have intergrated the function `collect jags results Full NMA PM Continuous_function()` in our main function `NMA.IMDOM.IMROM.PM.model()`.
+
+### Required format of the dataset 
+
+To use this R function, the dataset must have a wide-format structure, where every trial occupies one row and every intervention-arm occupies one column. For a network with $N$ trials and $K = max(a_1,...,a_N)$ maximum number of arms across the trials, the dataset will occupy $N$ rows and $K$ columns for the intervention-arms (i.e. $t_1$, $t_2$, ... $t_K$), $K$ columns for the observed mean outcome (i.e. $y^o_1$, $y^o_2$, ... $y^o_K$), $K$ columns for the observed standard error of the outcome per  intervention-arm(i.e. $se^o_1$, $se^o_2$, ... $se^o_K$), $K$ columns for the number of participant losses per intervention-arm (i.e. $m_1$, $m_2$, ... $m_K$), and $K$ columns for the number of participants who completed the trial per intervention-arm (i.e. $c_1$, $c_2$, ... $c_K$). An additional column, *NMA*, is needed to indicate the number of networks that comprise the dataset - even if there is only one network in the dataset.
+
+The following code chunk loads our collection of five networks with extractable MCOD in each arm of every trial (out of the 92 networks with a continuous primary outcome):
+
+```{r, echo = TRUE}
+dataset <- read.table("./Dataset/Dataset Continuous Outcomes.txt", header = T)
+```
+
+The following Table presents the distribution of MCOD (expressed as percentage) per network:
+
+
+|   Review           |  minimum  |   1st quartile   |    Median    |    mean   |    3rd quartile     |   maximum   |
+|:-------------------|----------:|-----------------:|-------------:|----------:|--------------------:|------------:|
+|                                                 *Total %MCOD*                                                   ||                 
+|Wandel et al.       |  0.00     |   0.00           |  0.00        | 1.02      | 1.39                | 4.37        |
+|Stowe et al.        |  0.00     |   0.66           |  5.88        | 15.55     | 33.33               | 55.84       |
+|Cipriani et al.     |  0.00     |   0.67           |  1.85        | 6.48      | 5.19                | 49.89       |
+|Squires et al.      |  0.00     |   0.00           |  0.32        | 4.46      | 6.54                | 18.84       |
+|Schwingshackl et al.|  0.00     |   0.00           |  1.09        | 6.83      | 10.63               | 30.77       |
+|                                   *Difference in %MOD between compared arms*                                    ||           
+|Wandel et al.       |  0.00     |   0.00           |  0.00        | 0.12      | 0.03                | 0.79        |
+|Stowe et al.        |  0.00     |   0.04           |  1.69        | 13.01     | 7.32                | 66.39       |
+|Cipriani et al.     |  0.00     |   0.75           |  1.69        | 6.99      | 3.97                | 66.33       |
+|Squires et al.      |  0.00     |   0.00           |  0.19        | 2.17      | 2.68                | 10.95       |
+|Schwingshackl et al.|  0.00     |   0.00           |  0.00        | 1.89      | 3.41                | 8.96        |
+
+### An illustrating example 
+
+As an illustrating example, we will use the network of Stowe et al. [21] that has a considerable amount of MCOD (>20%) in many trials. This is the second network in our collection. This network comprises 29 trials that form a star network of three antiparkinsonian interventions (*catechol-O-methyl transferase inhibitors plus levodopa (COMTI-LD)*, *dopamine agonist plus levodopa (DA+LD)*, and *monoamine oxidase type B inhibitors plus levodopa (MAOBI+LD)*) that are compared with *placebo plus levopoda (PBO+LD)* regarding reduction in patient off-time of Parkinsonian symptoms (worsening of symptoms) measured as a change from baseline.
+
+```{r echo = FALSE, results = 'hold', message = FALSE, warning = FALSE}
+
+## Load the libraries to draw the network plot: gemtc will manage the data to be fed in pcnetmeta
+library(gemtc); library(pcnetmeta)
+
+## Focus on Stowe et al.
+stowe <- dataset[dataset$NMA == 2, c(5:19, 23)]
+
+## Transform the data to a wide format where each arm of a trial occupies a line
+data.GeMTC <- as.data.frame(cbind(stowe[, c(1:9, 13:15)], rep(2, length(stowe[, 1]))))
+colnames(data.GeMTC) <- c("t..1.","t..2.","t..3.","y..1.","y..2.","y..3.","se..1.","se..2.","se..3.","n..1.","n..2.","n..3.","na..")
+transform <- mtc.data.studyrow(data.GeMTC, armVars = c('treatment'= 't', 'mean'='y', 'std.error'='se', 'sampleSize'='n'), nArmsVar='na')
+
+nma.networkplot(study, treatment, data = transform, trtname = c("PBO+LD", "DA+LD", "COMTI+LD", "MAOBI+LD"), alphabetic = F, title = "Network of antiparkinsonian interventions", text.cex = 1, adjust.figsizey = 1.2)
+```
+
+The dataset of Stowe et al. is displayed below in the required wide-format. Note that we have replaced value 2 (being the second network in our collection) with 1 (being the unique network we analyse) in the column *NMA* to be able to run the R function.
+
+```{r echo = FALSE, results = 'hold'}
+stowe$NMA <- rep(1, length(stowe[, 1]))
+print(stowe)
+```
+
+We will run a random-effects network meta-analysis `meta.model = "RE"` using the mean difference for effect measure `measure = "MD"` together with the IMDoM for informative missingness parameter. We will consider all three assumptions for IMDoM (i.e. common-within-network, trial-specific, and intervention-specific) under the identical structure `model = "identical"`, and we will assign a *liberal variance* in the normal prior distribution of IMDoM `var.misspar = 1`. The outcome has a negative direction `dir = 0`, because a negative mean difference favors the first intervention, whereas a positive mean difference favors the second intervention. The statements `n.chains`, `n.iter`, `n.burnin`, and `n.thin` are necessary to indicate the number of Markov chains (the [default](https://www.rdocumentation.org/packages/R2jags/versions/0.5-7/topics/jags) is 3), the number of total iterations per chain (the default is 2000), the length of burn-in (i.e. number of iterations to discard at the beginning of the simulations), and the thinning rate (which must be a positive integer) in the `jags()` function.    
+
+```{r runCode, echo = TRUE, results = 'hide', warning = FALSE, message = FALSE}
+NMA.IMDOM.IMROM.PM.model(stowe, meta.model = "RE", measure = "MD", model = "identical", var.misspar = 1, dir = 0, n.chains = 2, n.iter = 10000, n.burnin = 1000, n.thin = 1)
+```
+
+The output is a series of text-files and it is saved __automatically__ in the folder <span style="color: blue;">__Output__</span>:
+
+* Pattern-mixture IMDOM & IMROM model
+  + Model scripts
+    + Full NMA model
+      + Fixed-effect model
+        + Mean Difference
+        + Ratio of Means
+        + Standardised Mean Difference
+      + Random-effects model
+        + Mean Difference
+        + Ratio of Means
+        + Standardised Mean Difference
+  + <span style="color: blue;">__Output__</span>
+    + <span style="color: blue;">Data</span>
+      + <span style="color: blue;">Full NMA models</span>
+        + <span style="color: blue;">Fixed-effect model</span>
+          + <span style="color: blue;">Mean Difference</span>
+          + <span style="color: blue;">Ratio of Means</span>
+          + <span style="color: blue;">Standardised Mean Difference</span>
+        + <span style="color: blue;">Random-effects model</span>
+          + <span style="color: blue;">Mean Difference</span>
+          + <span style="color: blue;">Ratio of Means</span>
+          + <span style="color: blue;">Standardised Mean Difference</span>
+  + R scripts
+    + Functions
+      + Full NMA model
+
+
+The function creates automatically a sub-folder for each assumption, where it 'drops' the corrresponding text files that refer to the results on the pooled mean difference for all possible comparisons, the within-trial mean difference, the common $\tau^2$, the SUCRA values of the interventions, the order of the interventions, and the estimated missingness parameter according to the assumption. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
+
+<img align="left" width="64" height="64" src="O:/Research Projects/Git Hub Projects/NEMO/Continuous outcomes/under-construction_geek_man_01.png"> 
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+Currently, the R function `NMA.IMDOM.IMROM.PM.model()` displays a list of results on the aforementioned model parameters for each assumption about the missingness parameter. For instance, the output for the <span style="color: blue;">common-within-network assumption</span> under the identical structure would be as follows:
+
+```{r, echo = FALSE, results = 'hold', warning = FALSE, message = FALSE}
+NMA.IMDOM.IMROM.PM.model(stowe, meta.model = "RE", measure = "MD", model = "identical", var.misspar = 1, dir = 0, n.chains = 2, n.iter = 10000, n.burnin = 1000, n.thin = 1)[[1]][[1]]
+```
+
+We plan to replace this output with proper illustration, such as forestplots for the pooled effect sizes and barplots for the SUCRA values to visualise the results under all assumptions simultaneously.
+
+
+## References
+1. Davey J, Turner RM, Clarke MJ, Higgins JP. Characteristics of meta-analyses and their component studies in the Cochrane Database of Systematic Reviews: a cross-sectional, descriptive analysis. BMC Med Res Methodol. 2011;11:160. doi: 10.1186/1471-2288-11-160.
+2. Mavridis D, White IR, Higgins JP, Cipriani A, Salanti G. Allowing for uncertainty due to missing continuous outcome data in pairwise and network meta-analysis. Stat Med. 2015;34(5):721-41. doi: 10.1002/sim.6365.
+3. Akl EA, Kahale LA, Ebrahim S, Alonso-Coello P, Schünemann HJ, Guyatt GH. Three challenges described for identifying participants with missing data in trials reports, and potential solutions suggested to systematic reviewers. J Clin Epidemiol. 2016;76:147-54. doi: 10.1016/j.jclinepi.2016.02.022. 
+4. Spineli LM, Yepes-Nuñez JJ, Schünemann HJ.A systematic survey shows that reporting and handling of missing outcome data in networks of interventions is poor.BMC Med Res Methodol. 2018;18(1):115. doi: 10.1186/s12874-018-0576-9.
+5. Spineli LM, Pandis N, Salanti G. Reporting and handling missing outcome data in mental health: a systematic review of Cochrane systematic reviews and meta-analyses. Res Synth Methods. 2015;6(2):175-87. doi: 10.1002/jrsm.1131.
+6. Higgins JP, White IR, Wood AM. Imputation methods for missing outcome data in meta-analysis of clinical trials. Clin Trials. 2008;5(3):225-39. doi: 10.1177/1740774508091600.
+7. Spineli LM, Kalyvas C. Comparison of exclusion, imputation and modelling of missing binary outcome data in frequentist network meta-analysis. BMC Med Res Methodol. 2020;20(1):48. doi: 10.1186/s12874-020-00929-9.
+8. Ebrahim S, Akl EA, Mustafa RA, Sun X, Walter SD, Heels-Ansdell D, Alonso-Coello P, Johnston BC, Guyatt GH. Addressing continuous data for participants excluded from trial analysis: a guide for systematic reviewers. J Clin Epidemiol. 2013;66(9):1014-1021.e1. doi: 10.1016/j.jclinepi.2013.03.014. 
+9. Ebrahim S, Johnston BC, Akl EA, Mustafa RA, Sun X, Walter SD, Heels-Ansdell D, Alonso-Coello P, Guyatt GH. Addressing continuous data measured with different instruments for participants excluded from trial analysis: a guide for systematic reviewers. J Clin Epidemiol. 2014;67(5):560-70. doi: 10.1016/j.jclinepi.2013.11.014.
+10. Mavridis D, White IR, Higgins JP, Cipriani A, Salanti G. Allowing for uncertainty due to missing continuous outcome data in pairwise and network meta-analysis. Stat Med. 2015;34(5):721-41. doi: 10.1002/sim.6365.
+11. Spineli LM. An empirical comparison of Bayesian modelling strategies for missing binary outcome data in network meta-analysis. BMC Med Res Methodol. 2019;19(1):86. doi: 10.1186/s12874-019-0731-y.
+12. Turner NL, Dias S, Ades AE, Welton NJ. A Bayesian framework to account for uncertainty due to missing binary outcome data in pairwise meta-analysis. Stat Med. 2015;34(12):2062-80.
+13. Rhodes KM, Turner RM, Higgins JP. Predictive distributions were developed for the extent of heterogeneity in meta-analyses of continuous outcome data. J Clin Epidemiol. 2015;68(1):52-60. doi: 10.1016/j.jclinepi.2014.08.012.
+14. Nikolakopoulou A, Chaimani A, Veroniki AA, Vasiliadis HS, Schmid CH, Salanti G. Characteristics of networks of interventions: a description of a database of 186 published networks. PLoS One. 2014;9(1):e86754. doi: 10.1371/journal.pone.0086754.
+15. Friedrich JO, Adhikari NK, Beyene J. Ratio of geometric means to analyze continuous outcomes in meta-analysis: comparison to mean differences and ratio of arithmetic means using empiric data and simulation. Stat Med. 2012;31(17):1857-86. doi: 10.1002/sim.4501.
+16. Stevens JW. A note on dealing with missing standard errors in meta-analyses of continuous outcome measures in WinBUGS. Pharm Stat. 2011;10(4):374-8. doi: 10.1002/pst.491.
+17. Higgins JP, Whitehead A. Borrowing strength from external trials in a meta-analysis. Stat Med. 1996;15(24):2733-49. doi: 10.1002/(SICI)1097-0258(19961230)15:24<2733::AID-SIM562>3.0.CO;2-0.
+18. Salanti G. Indirect and mixed-treatment comparison, network, or multiple-treatments meta-analysis: many names, many benefits, many concerns for the next generation evidence synthesis tool. Res Synth Methods. 2012;3(2):80-97. doi: 10.1002/jrsm.1037.
+19. Lu G, Ades AE. Assessing evidence inconsistency in mixed treatment comparisons. J Am Stat Assoc 2006;101:447–59. doi: 10.1198/016214505000001302.
+20. Salanti G, Ades AE, Ioannidis JPA. Graphical methods and numerical summaries for presenting results from multiple-treatment meta-analysis: an overview and tutorial. J Clin Epidemiol 2011;64:163–71. doi: 10.1016/j.jclinepi.2010.03.016.
+21. Stowe R, Ives N, Clarke CE, Handley K, Furmston A, Deane K, van Hilten JJ, Wheatley K, Gray R. Meta-analysis of the comparative efficacy and safety of adjuvant treatment to levodopa in later Parkinson's disease. Mov Disord 2011;26(4):587-98. doi: 10.1002/mds.23517.
