@@ -1,0 +1,80 @@
+######################################################################################  
+#                                                                                    #
+#      Full RE NMA model with consistency and accommodation of multi-arm trials      #
+#              (Dias et al., 2012 – PMID: 23104435; Appendix Example 7(a))           #
+#     Two-stage pattern-mixture IMOR model with Missing at Random (MAR) assumption   #
+#             <Empirical prior distribution on tau2 (Primary Analysis)>              #  
+#                                                                                    #
+######################################################################################  
+
+
+model{ 
+   for(i in 1:ns){   
+    w[i, 1] <- 0                                                                    # adjustment for multi-arm trials is zero for control arm                                                               # LOOP THROUGH 2-ARM STUDIES
+    y[i, 2] ~ dnorm(delta[i, 2], prec[i, 2])                                        # normal likelihood for 2-arm trials (New/Old vs PBO, Old vs PBO)
+
+     for(k in 2:na[i]){                                                             # LOOP THROUGH ARMS
+       vari[i, k] <- pow(se[i, k], 2)                                               # calculate variances
+       prec[i, k] <- 1/vari[i, k]                                                   # set precisions
+
+       delta[i, k] ~ dnorm(md[i, k], taud[i, k])                                    # trial-specific LORs distributions                                      
+       md[i, k] <- d[t[i, k]] - d[t[i, 1]] + sw[i, k]                               # consistency equation
+       w[i, k] <- delta[i, k] - (d[t[i, k]] - d[t[i, 1]])
+       sw[i, k] <- sum(w[i, 1:(k - 1)])/(k - 1)
+       taud[i, k] <- 2*(k - 1)*tau/k                                                # precision of LORs distributions 
+                       } 
+                         }
+  
+   d[ref] <- 0                                                                      # treatment effect is zero for reference treatment (here, ref = 1)
+   for(k in 1:(ref - 1)){                                                           # vague priors for treatment effects 
+     d[k] ~ dnorm(0, .0001) 
+                          }
+
+   for(k in (ref + 1):nt){                                                           # vague priors for treatment effects 
+     d[k] ~ dnorm(0, .0001) 
+                          }
+
+  
+   ## Prior specifications
+   tau <- pow(tausq, -1)
+   tausq ~ dlnorm(mean.tau2, prec.tau2)                                          
+
+  
+   #### Collection of results ####
+   for(c in 1:(nt - 1)){
+     for(k in (c + 1):nt){
+       LOR[k, c] <- d[k] - d[c]
+                   }
+                  } 
+
+   ## Obtain reference-specific logORs
+   for(t in 1:(ref - 1)){
+     LOR.ref[t] <- d[t] - d[ref]
+                        }
+
+   for(t in (ref + 1):nt){
+     LOR.ref[t] <- d[t] - d[ref]
+                         }
+ 
+   ## Ranking probabilities
+   sorted <- rank(d[])
+   for(k in 1:nt){   
+     order[k] <- nt + 1 - sorted[k]                                                   # For positive outcome - omit 'nt+1-' for negative outcome
+     most.effective[k] <- equals(order[k], 1)
+		
+     for(j in 1:nt){
+       effectiveness[k, j] <- equals(order[k], j)
+		    }
+	           }
+		
+   for(k in 1:nt){
+     for(j in 1:nt){
+       cumeffectiveness[k, j] <- sum(effectiveness[k, 1:j])
+		   }
+	          }
+	
+   # SUCRAS #
+   for(k in 1:nt){
+     SUCRA[k]<- sum(cumeffectiveness[k, 1:(nt-1)])/(nt-1)
+	         }	
+    }

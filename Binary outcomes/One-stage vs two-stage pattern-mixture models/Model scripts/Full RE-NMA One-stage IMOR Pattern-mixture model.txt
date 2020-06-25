@@ -1,0 +1,94 @@
+###################################################################################### 
+#                                                                                    #
+#      Full RE NMA model with consistency and accommodation of multi-arm trials      #
+#                        (Dias et al., 2012 – PMID: 23104435)                        #
+#    One-stage pattern-mixture IMOR model with Missing at Random (MAR) assumption    #
+#                     Independent, uncorrelated trial-arm log IMORs                  #
+#                       (Turner et al., 2015 - PMID: 25809313)                       #            
+#             <Empirical prior distribution on tau2 (Primary Analysis)>              #  
+#                                                                                    #
+######################################################################################
+
+
+model{
+   for(i in 1:ns){
+     ## Baseline log odds of event
+     logit(p[i, 1]) <- u[i] 
+     u[i] ~ dnorm(0, .0001)
+     w[i, 1] <- 0
+
+   for(k in 1:na[i]){  
+     ## Observed events and likelihood per arm
+     r[i, k] ~ dbin(p_o[i, k], obs[i, k])
+     obs[i, k] <- n[i, k] - m[i, k]
+     p_o[i, k] <- max(0, min(1, ((-((q[i, k] - p[i, k])*(1 - delta[i, k]) - 1) - sqrt((pow(((q[i, k] - p[i, k])*(1 - delta[i, k]) - 1), 2)) - 
+                                    ((4*p[i, k])*(1 - q[i, k])*(1 - delta[i, k]))))/(2*(1 - q[i, k])*(1 - delta[i, k]))))) 
+
+     ## Missing participants and likelihood per arm
+     m[i, k] ~ dbin(q[i, k], n[i, k])
+     q[i, k] ~ dunif(0, 1)
+
+     ## Independent, common-within-network LogIMOR  
+     log(delta[i, k]) <- phi[i, k]
+     phi[i, k] ~ dnorm(log(0.9999), 1)
+                    }
+
+   for(k in 2:na[i]){
+     logit(p[i, k]) <- u[i] + theta[i, k]
+     theta[i, k] ~ dnorm(md[i, k], precd[i, k])
+     md[i, k] <- d[t[i, k]] - d[t[i, 1]] + sw[i, k]
+     w[i, k] <- theta[i, k] - (d[t[i, k]] - d[t[i, 1]])
+     sw[i, k] <- sum(w[i, 1:(k - 1)])/(k - 1)
+     precd[i, k] <- 2*(k - 1)*prec/k
+                    }
+              }
+
+   ## Basic parameters - prior distributions
+   d[ref] <- 0              # here, ref = 1
+   for(t in 1:(ref - 1)){
+     d[t] ~ dnorm(0, .0001)
+                      }
+
+   for(t in (ref + 1):nt){
+     d[t] ~ dnorm(0, .0001)
+                      }
+
+   ## Ranking probabilities and SUCRA values
+   sorted <- rank(d[])
+   for(t in 1:nt){
+     order[t] <- nt + 1 - sorted[t]
+     most.effective[t] <- equals(order[t], 1)
+
+     for(l in 1:nt){
+       effectiveness[t, l] <- equals(order[t], l)
+       cumeffectiveness[t, l] <- sum(effectiveness[t, 1:l])
+                      }
+
+     SUCRA[t] <- sum(cumeffectiveness[t, 1:(nt - 1)])/(nt - 1)
+                    }  
+
+   ## Obtain all results
+   for(c in 1:(nt - 1)){
+     for(k in (c + 1):nt){
+       LOR[k, c] <- d[k] - d[c]
+                   }
+                  } 
+
+   ## Obtain reference-specific logORs
+   for(t in 1:(ref - 1)){
+     LOR.ref[t] <- d[t] - d[ref]
+                        }
+
+   for(t in (ref + 1):nt){
+     LOR.ref[t] <- d[t] - d[ref]
+                         }
+
+   ## Prior specifications
+   prec <- pow(tausq, -1)
+   tausq ~ dlnorm(mean.tau2, prec.tau2)  
+      } # END OF MODEL
+
+
+
+
+
