@@ -22,9 +22,7 @@ model{
         ## Observed mean value and precision per arm & linking equation
         prec.o[i, k] <- pow(se.o[i, k], -2)                                                                    # observed precision of the outcome
         y.o[i, k] ~ dnorm(theta.o[i, k], prec.o[i, k])                                                         # normal likelihood for the oberved mean of the outcome
-        constrain[i, k] <- min(u[i]*exp(phi[i, k]), 1)                                                         # necessary constrain on the missingness parameter (so that theta.o has support in [0,1])
-        theta.o[i, k] <- (theta[i, k]/(1 - q[i, k]*(1 - exp(phi[i, k]))))*(1 - equals(constrain[i, k], 1)) +   # linking equation for Informative Missingness Ratio of Means (IMRoM)
-                         ((theta[i, k] - q[i, k])/(1 - q[i, k]))*equals(constrain[i, k], 1)
+        theta.o[i, k] <- theta[i, k]/(1 - q[i, k]*(1 - exp(phi[i, k])))                                        # linking equation for Informative Missingness Ratio of Means (IMRoM)
         phi[i, k] ~ dnorm(mean.phi, prec.phi)                                                                  # hierarchical, common-within-network log IMRoM
 
         ## Missing participants and likelihood per arm
