@@ -1,14 +1,3 @@
----
-output:
-  github_document
----
-
-
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ***
 
 #  Modelling observed and missing continuous outcome data in one-stage pattern-mixture network meta-analysis
