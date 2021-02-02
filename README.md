@@ -4,7 +4,7 @@
 
 ## The pattern-mixture model
 
-Mavridis et al. [1] first proposed a two-stage approach that, first, models the observed and missing continuous outcomes simultaneously in each arm of every trial via a pattern-mixture model to obtain adjusted within-trial results (treatment effect and standard error), and then, it pools the trials using a pairwise or network meta-analysis model. The pattern-mixture model distinguishes the participants to those who remained to the trial and those who left the trial early for any reason. Then, in each subgroup, the mean and variance of the outcome is considered. However, this information is not known in the subgroup with the missing participants (except if these participants have been followed-up after leaving the trial).
+Mavridis et al. [1] have proposed a two-stage approach that, first, models the observed and missing continuous outcomes simultaneously in each arm of every trial via a pattern-mixture model to obtain adjusted within-trial results (treatment effect and standard error), and then, it pools the trials using a pairwise or network meta-analysis model. The pattern-mixture model distinguishes the participants to those who remained to the trial and those who left the trial early for any reason. Then, in each subgroup, the mean and variance of the outcome is considered. However, this information is not known in the subgroup with the missing participants (except if these participants have been followed-up after leaving the trial).
 
 ### Two missingness parameters
 
