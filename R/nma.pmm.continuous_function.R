@@ -36,7 +36,7 @@
 #' @references
 #' Gelman, A, Rubin, DB. Inference from iterative simulation using multiple sequences. Stat Sci. 1992;7:457–472.
 #'
-#' \dontshow{load("./data/One-stage model_NMA Dataset.RData")}
+#' \dontshow{load("netmodr/data/One-stage model_NMA Dataset.RData")}
 #' @examples
 #' ### Show the data (one-trial-per-row format)
 #' (data <- as.data.frame(one.stage.dataset.NMA[[3]]))
