@@ -22,7 +22,7 @@
 #' @references
 #' Gelman, A, Rubin, DB. Inference from iterative simulation using multiple sequences. Stat Sci. 1992;7:457–472.
 #'
-#' \dontshow{load("./data/One-stage model_NMA Dataset.RData")}
+#' \dontshow{load("netmodr/data/One-stage model_NMA Dataset.RData")}
 #' @examples
 #' ### Obtain the diagnostic plots and check convergence for all monitored parameters using the R.hat
 #' mcmc.diagnostics(par = c("tau2", "EM[3,1]", "EM[3,2]"), data = data, measure = "ROM", assumption = "HIE-TRIAL", mean.misspar = 0, var.misspar = 1, D = 0, n.chains = 3, n.iter = 10000, n.burnin = 1000, n.thin = 1)
@@ -84,7 +84,7 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
   }
 
 
-  jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
+  jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("netmodr/model/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
                   n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
 
   EM <- jagsfit$BUGSoutput$summary[1:(nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
