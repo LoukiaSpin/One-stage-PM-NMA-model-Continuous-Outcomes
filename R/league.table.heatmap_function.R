@@ -17,7 +17,7 @@
 #'
 #' @return A heatmap of the treatment effects of all possible comparisons in the off-diagonals, and the SUCRA values in the diagonals
 #'
-#' \dontshow{load("./data/NMA_results.RData")}
+#' \dontshow{load("netmodr/data/NMA_results.RData")}
 #' @examples
 #' drug.names <- sapply(1:14, function(x) letters[x])
 #' league.table.heatmap(net = res, drug.names = drug.names, D = 0)
