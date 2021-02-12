@@ -84,7 +84,7 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
   }
 
 
-  jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("netmodr/model/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
+  jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("netmodr/model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
                   n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
 
   EM <- jagsfit$BUGSoutput$summary[1:(nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
