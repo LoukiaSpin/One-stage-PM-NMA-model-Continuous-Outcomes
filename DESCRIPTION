@@ -1,0 +1,20 @@
+Package: netmodr
+Type: Package
+Title: Addressing missing participants with aggregate continuous outcome data in network meta-analysis
+Version: 0.1.0
+Author: Loukia Spineli
+Maintainer: <Spineli.Loukia@mh-hannover.de>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License:
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    dplyr,
+    ggplot2,
+    R2jags,
+    mcmcplots,
+    ggfittext,
+    reshape2 
+SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)
+RoxygenNote: 7.1.1
