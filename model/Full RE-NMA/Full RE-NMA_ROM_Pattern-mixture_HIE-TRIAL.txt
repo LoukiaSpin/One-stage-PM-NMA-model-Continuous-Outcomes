@@ -1,11 +1,15 @@
-####################################################################################################  
-#                                                                                                  #
-#               Full NMA model with consistency and accomodation of multi-arm trials               #
-#                               (Dias et al., 2012 – PMID: 23104435)                               #
-#                     Ratio of Means and Informative Missingness Ratio of Means                    #   
-#        One-stage pattern-mixture model - Hierarchical, trial-specific with MAR assumption        #     
-#                                                                                                  #
-#################################################################################################### 
+###############################################################################################
+#                                                                                             #
+#       Random-effects NMA model with consistency and accommodation of multi-arm trials       #
+#                        <Normal likelihood, log link, Random Effects>                        #
+#                (Extension of Dias et al., 2013 in Appendix - PMID: 23104435)                #
+#                               One-stage pattern-mixture model                               #
+#                           (Spineli et al., 2021 - PMID: 33406990)                           #
+#           Ratio of Means (ROM) and Informative Missingness Ratio of Means (IMROM)           #
+#                           (Mavridis et al., 2015 - PMID: 25393541)                          #
+#                             <Hierarchical, trial-specific IMROM>                            #
+#                                                                                             #
+###############################################################################################
 
 
 
@@ -37,7 +41,7 @@ model{
      resdev.m[i] <- sum(dev.m[i, 1:na[i]])                                                                   # Summed residual deviance contribution for this trial (MOD; PMID: 25809313)
       
      for(k in 2:na[i]){                                       
-       theta[i, k] <- u[i]*exp(delta[i, k])                                                                  # link function for ratio of means (RoM)
+       theta[i, k] <- u[i]*exp(delta[i, k])                                                                  # link function for ratio of means (RoM) in logarithmic scale
        delta[i, k] ~ dnorm(md[i, k], taud[i, k])                                                             # within-trial true log RoM (random-effect)
        md[i, k] <- d[t[i, k]] - d[t[i, 1]] + sw[i, k]                                                        # mean of log RoM distributions (with multi-arm trial correction)
        taud[i, k] <- 2*tau*(k - 1)/k                                                                         # precision of log RoM distributions (with multi-arm trial correction)
@@ -60,7 +64,7 @@ model{
 
 
    for(i in 1:ns){
-     mean.phi[i] ~ dnorm(meand.phi, precd.phi)                                                               # on average missing at random with uncertainty (specified in R script)
+     mean.phi[i] ~ dnorm(meand.phi, precd.phi)                                                               
      prec.phi[i] <- pow(sd.phi[i], -2)
      sd.phi[i] ~ dunif(0, psi.phi) 
                   }
@@ -81,7 +85,7 @@ model{
      SUCRA[t] <- sum(cumeffectiveness[t, 1:(nt - 1)])/(nt - 1)
                   }  
 
-   ## Obtain reference-specific effect measure (ES, log scale)
+   ## Obtain reference-specific effect measure (EM, log scale)
    for(t in 1:(ref - 1)){
      EM.ref[t] <- d[t] - d[ref]
                   }
@@ -90,7 +94,7 @@ model{
      EM.ref[t] <- d[t] - d[ref]
                   }
 
-   ## Obtain all possible (unique) pairwise comparisons
+   ## Obtain all possible (unique) pairwise comparisons (log scale)
    for(c in 1:(nt - 1)){
      for(k in (c + 1):nt){
        EM[k, c] <- d[k] - d[c]

@@ -2,11 +2,12 @@
 #                                                                                                      #
 #           Random-effects NMA model with consistency and accommodation of multi-arm trials            #
 #                          <Normal likelihood, identity link, Random Effects>                          #
-#                          (Dias et al., 2013 in Appendix  - PMID: 23104435)                           #
+#                    (Extension of Dias et al., 2013 in Appendix - PMID: 23104435)                     #
 #                                   One-stage pattern-mixture model                                    #
+#                               (Spineli et al., 2021 - PMID: 33406990)                                #
 #      Standardised Mean Difference (SMD) and Informative Missingness Difference of Means (IMDOM)      #
 #                               (Mavridis et al., 2015 - PMID: 25393541)                               #
-#           <Independent, within-trial correlated IMDOM under missing at random assumption>            #
+#                            <Independent, within-trial uncorrelated IMDOM>                            #
 #                                                                                                      #
 ########################################################################################################
 
@@ -30,7 +31,7 @@ model{
         y.o[i, k] ~ dnorm(theta.o[i, k], prec.o[i, k])                    # normal likelihood for the oberved mean of the outcome
         theta.o[i, k] <- theta[i, k] - phi[i, k]*q[i, k]                  # linking equation for Informative Missingness Difference of Means (IMDoM)
         phi[i, k] ~ dnorm(meand.phi, precd.phi)                           # Prior consideration on independent, within-trial uncorrelated IMDoM    
-                                                                          # on average missing at random with uncertainty (specified in R script)
+                                                                          
         ## Missing participants and likelihood per arm
         m[i, k] ~ dbin(q[i, k], N[i, k])                                  # binomial likelihood for missing outcome data (MOD)
         q[i, k] ~ dunif(0, 1)                                             # uniform likelihood for the probability of MOD

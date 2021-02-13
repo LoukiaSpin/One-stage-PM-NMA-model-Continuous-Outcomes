@@ -2,11 +2,12 @@
 #                                                                                                      #
 #           Random-effects NMA model with consistency and accommodation of multi-arm trials            #
 #                          <Normal likelihood, identity link, Random Effects>                          #
-#                          (Dias et al., 2013 in Appendix  - PMID: 23104435)                           #
+#                    (Extension of Dias et al., 2013 in Appendix - PMID: 23104435)                     #
 #                                   One-stage pattern-mixture model                                    #
+#                               (Spineli et al., 2021 - PMID: 33406990)                                #
 #      Standardised Mean Difference (SMD) and Informative Missingness Difference of Means (IMDOM)      #
 #                               (Mavridis et al., 2015 - PMID: 25393541)                               #
-#                 <Identical, trial-specific IMDOM under missing at random assumption>                 #
+#                                  <Identical, trial-specific IMDOM>                                   #
 #                                                                                                      #
 ########################################################################################################
 
@@ -73,7 +74,7 @@ model{
 
     ## Prior consideration on identical, trial-specific IMDOM
     for(i in 1:ns){
-      phi[i] ~ dnorm(meand.phi, precd.phi)                                # on average missing at random with uncertainty (specified in R script)
+      phi[i] ~ dnorm(meand.phi, precd.phi)                                
                   }
 
     ## Ranking probabilities and SUCRA values

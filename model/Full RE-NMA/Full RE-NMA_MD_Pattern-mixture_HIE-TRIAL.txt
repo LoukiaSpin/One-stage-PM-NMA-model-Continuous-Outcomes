@@ -2,7 +2,7 @@
 #                                                                                             #
 #       Random-effects NMA model with consistency and accommodation of multi-arm trials       #
 #                     <Normal likelihood, identity link, Random Effects>                      #
-#                      (Dias et al., 2013 in Appendix  - PMID: 23104435)                      #
+#                      (Dias et al., 2013 in Appendix - PMID: 23104435)                       #
 #                               One-stage pattern-mixture model                               #
 #                           (Spineli et al., 2021 - PMID: 33406990)                           #
 #        Mean Difference (MD) and Informative Missingness Difference of Means (IMDOM)         #
@@ -89,7 +89,7 @@ model{
       SUCRA[t] <- sum(cumeffectiveness[t, 1:(nt - 1)])/(nt - 1)
                    }  
 
-    ## Obtain reference-specific effect measure (ES) 
+    ## Obtain reference-specific effect measure (EM) 
     for(t in 1:(ref - 1)){
       EM.ref[t] <- d[t] - d[ref]
                          }
