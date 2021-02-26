@@ -17,7 +17,7 @@
 #'  \item{\code{SUCRA}}{The surface under the cumulative ranking curve for each intervention.}
 #'  \item{\code{phi}}{The informative missingness parameter.}
 #'  \item{\code{delta}}{The underlying trial-specific effect estimate. For a multi-arm trial, we estimate \emph{T-1} trial-specific effect estimates, where \emph{T} is the number of interventions in the trial.}
-#'  \item{\code{tau2}}{The between-trial variance assumed to be common for all observed comparisons.}
+#'  \item{\code{tausq}}{The between-trial variance assumed to be common for all observed comparisons.}
 #' }
 #'
 #' @format The columns of the data frame \code{data} refer to the following ordered elements for a continuous outcome:
@@ -159,7 +159,8 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
   EM <- jagsfit$BUGSoutput$summary[1:(nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   tausq <- jagsfit$BUGSoutput$summary["tau2", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   SUCRA <- jagsfit$BUGSoutput$summary[paste0("SUCRA[", seq(1:nt), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  effectiveness <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + 1):(nt*(nt - 1)*0.5 + nt + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  delta <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1)), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  effectiveness <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + sum(na - 1) + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
 
 
 
@@ -194,6 +195,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   }
 
-return(list(EM = EM, tausq = tausq, SUCRA = SUCRA, effectiveness = effectiveness, phi = phi))
+  return(list(EM = EM, tausq = tausq, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi))
+
 }
 
