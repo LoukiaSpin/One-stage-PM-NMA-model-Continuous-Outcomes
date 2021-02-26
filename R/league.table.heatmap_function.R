@@ -25,6 +25,8 @@
 #' @export
 league.heatmap <- function(net, drug.names, D){
 
+  net <- res2
+
   par <- net$EM; sucra <- net$SUCRA
 
   ## Source: https://rdrr.io/github/nfultz/stackoverflow/man/reflect_triangle.html
@@ -70,11 +72,14 @@ league.heatmap <- function(net, drug.names, D){
 
   ## Spot the statistically significant comparisons (i.e. the 95% CrI does not include the value of no difference)
   #(signif.status <- ifelse(upper < 0 | lower > 0, "**", ""))
-  (signif.status <- ifelse(upper < 0 | lower > 0, "significant", "non-significant"))
+  (signif.status <- melt(ifelse(upper < 0 | lower > 0, "significant", "non-significant"), na.rm = F)[3])
+  signif.status[is.na(signif.status)] <- 0
+
 
 
   ## Merge point estimate with 95% credible interval in a new symmetric matric
-  (final <- matrix(paste0(point, signif.status, "\n", "(", lower, ",", " ", upper, ")"), nrow = length(drug.names), ncol = length(drug.names)))
+  #(final <- matrix(paste0(point, signif.status, "\n", "(", lower, ",", " ", upper, ")"), nrow = length(drug.names), ncol = length(drug.names)))
+  (final <- matrix(paste0(point,  "\n", "(", lower, ",", " ", upper, ")"), nrow = length(drug.names), ncol = length(drug.names)))
   colnames(final) <- order.drug; rownames(final) <- order.drug
 
 
@@ -108,8 +113,9 @@ league.heatmap <- function(net, drug.names, D){
   ## Hooray, the precious league table as a heatmap!
   p <- ggplot(mat.new, aes(Var2, factor(Var1, level = order.drug[length(order.drug):1]), fill = value2)) +
          geom_tile(aes(fill = value.SUCRA)) +
-         geom_fit_text(aes(Var2, Var1, label = value, fontface = "bold"), reflow = T) +
-         #geom_fit_text(aes(Var2, Var1, label = value, fontface = ifelse(signif.status == "significant", "bold", "plain")), reflow = T) +
+         geom_fit_text(aes(Var2, Var1, label = value), reflow = T) +
+         #geom_fit_text(aes(Var2, Var1, label = value, fontface = "bold"), reflow = T) +
+         geom_fit_text(aes(Var2, Var1, label = value, fontface = ifelse(signif.status == "significant", "bold", "plain")), reflow = T) +
          scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "grey70") +
          scale_x_discrete(position = "top") +
          labs(x = "", y = "") +
