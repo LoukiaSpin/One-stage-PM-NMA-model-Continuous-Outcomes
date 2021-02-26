@@ -1,7 +1,7 @@
-#' Perform network meta-analysis for an aggregate continuous outcome with missing participant data
+#' Perform network meta-analysis for an aggregate binary or continuous outcome with missing participant data
 #'
 #' @param data A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. See 'Format' for the specification of the columns.
-#' @param measure Character string indicating the effect measure with values \code{"MD"}, \code{"SMD"}, or \code{"ROM"}.
+#' @param measure Character string indicating the effect measure with values  \code{"OR"}, \code{"MD"}, \code{"SMD"}, or \code{"ROM"}.
 #' @param assumption Character string indicating the structure of the informative missingness parameter. Set \code{assumption} equal to one of the following: \code{"HIE-COMMON"}, \code{"HIE-TRIAL"}, \code{"HIE-ARM"}, \code{"IDE-COMMON"}, \code{"IDE-TRIAL"}, \code{"IDE-ARM"}, \code{"IND-CORR"}, or \code{"IND-UNCORR"}.
 #' @param mean.misspar A positive non-zero number for the mean of the normal distribution of the informative missingness parameter.
 #' @param var.misspar A positive non-zero number for the variance of the normal distribution of the informative missingness parameter.
@@ -16,11 +16,11 @@
 #'  \item{\code{EM}}{The effect estimate of all possible comparisons of interventions.}
 #'  \item{\code{SUCRA}}{The surface under the cumulative ranking curve for each intervention.}
 #'  \item{\code{phi}}{The informative missingness parameter.}
-#'  \item{\code{theta}}{The trial-specific effect estimate. For a multi-arm trial, we estimate \emph{T-1} trial-specific effect estimates, where \emph{T} is the number of interventions in the trial.}
-#'  \item{\code{tausq}}{The between-trial variance assumed to be common for all observed comparisons.}
+#'  \item{\code{delta}}{The underlying trial-specific effect estimate. For a multi-arm trial, we estimate \emph{T-1} trial-specific effect estimates, where \emph{T} is the number of interventions in the trial.}
+#'  \item{\code{tau2}}{The between-trial variance assumed to be common for all observed comparisons.}
 #' }
 #'
-#' @format The columns of the data frame \code{data} refer to the following ordered elements:
+#' @format The columns of the data frame \code{data} refer to the following ordered elements for a continuous outcome:
 #' \describe{
 #'  \item{\strong{t}}{An intervention identifier.}
 #'  \item{\strong{y}}{The observed mean value of the outcome.}
@@ -36,7 +36,7 @@
 #' @references
 #' Gelman, A, Rubin, DB. Inference from iterative simulation using multiple sequences. Stat Sci. 1992;7:457–472.
 #'
-#' \dontshow{load("netmodr/data/One-stage model_NMA Dataset.RData")}
+#' \dontshow{load("./data/NMA Dataset Continuous.RData")}
 #' @examples
 #' ### Show the data (one-trial-per-row format)
 #' (data <- as.data.frame(one.stage.dataset.NMA[[3]]))
