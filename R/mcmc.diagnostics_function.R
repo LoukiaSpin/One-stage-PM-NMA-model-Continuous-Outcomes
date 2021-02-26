@@ -198,7 +198,7 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
   conv <- rep(NA, length(R.hat.max))
   for(i in 1:length(R.hat.max)) {
 
-    conv[i] <- ifelse(R.hat.max[i] < 1.1, "convergence achieved", "convergence issue")
+    conv[i] <- ifelse(R.hat.max[i] < 1.1, "achieved", "failed")
 
   }
 
