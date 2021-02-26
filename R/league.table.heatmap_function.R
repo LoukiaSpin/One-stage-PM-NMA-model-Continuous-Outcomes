@@ -74,8 +74,8 @@ league.table.heatmap <- function(net, drug.names, D){
 
 
   ## Merge point estimate with 95% credible interval in a new symmetric matric
-  #(final <- matrix(paste0(point, signif.status, "\n", "(", lower, ",", " ", upper, ")"), nrow = length(drug.names), ncol = length(drug.names)))
-  #colnames(final) <- order.drug; rownames(final) <- order.drug
+  (final <- matrix(paste0(point, signif.status, "\n", "(", lower, ",", " ", upper, ")"), nrow = length(drug.names), ncol = length(drug.names)))
+  colnames(final) <- order.drug; rownames(final) <- order.drug
 
 
   ## Include SUCRA values in the diagonal of the new matrix
