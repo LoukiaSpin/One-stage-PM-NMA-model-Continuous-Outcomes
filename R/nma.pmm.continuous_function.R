@@ -77,20 +77,6 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
 
 
-    ## Define the pattern-mixture models for various prior structures of the missingness parameter under the random-effects assumption
-    # Under the Hierarchical structure
-    if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
-
-      param.jags <- c("theta", "EM", "tau2", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
-
-    } else {
-
-      param.jags <- c("theta", "EM", "tau2", "SUCRA", "phi", "effectiveness")
-
-    }
-
-
-
     # Under the Independent structure with or without SMD as effect measure
     if (measure == "SMD" & assumption != "IND-CORR") {
 
@@ -110,11 +96,6 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
     }
 
-
-
-    ## Perform the analysis
-    jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
-                    n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
 
 
   } else {
@@ -139,21 +120,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
 
 
-    ## Define the pattern-mixture models for various prior structures of the missingness parameter under the random-effects assumption
-    # Under the Hierarchical structure
-    if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
-
-      param.jags <- c("theta", "EM", "tau2", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
-
-    } else {
-
-      param.jags <- c("theta", "EM", "tau2", "SUCRA", "phi", "effectiveness")
-
-    }
-
-
-
-    # Under the Independent structure
+    ## Condition for the Independent structure
     if (assumption != "IND-CORR") {
 
       data.jag <- list("r" = r, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar, "D" = D)
@@ -165,13 +132,26 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
     }
 
 
+  }
 
-    ## Perform the analysis
-    jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
-                    n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
 
+
+  ## Condition for the hierarchical structure of the missingness parameter
+  if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
+
+    param.jags <- c("delta", "EM", "tau2", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
+
+  } else {
+
+    param.jags <- c("delta", "EM", "tau2", "SUCRA", "phi", "effectiveness")
 
   }
+
+
+
+  ## Run the Bayesian analysis
+  jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
+                    n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
 
 
 
