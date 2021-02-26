@@ -59,7 +59,7 @@ mcmc.diagnostics(par = c("tau2", "EM[3,1]", "EM[3,2]"), data = data, measure = "
 \references{
 Gelman, A, Rubin, DB. Inference from iterative simulation using multiple sequences. Stat Sci. 1992;7:457–472.
 
-\dontshow{load("./data/One-stage model_NMA Dataset.RData")}
+\dontshow{load("netmodr/data/One-stage model_NMA Dataset.RData")}
 }
 \seealso{
 \code{\link{mcmcplots}}

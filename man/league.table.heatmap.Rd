@@ -16,7 +16,7 @@ league.table.heatmap(net, drug.names, D)
 \value{
 A heatmap of the treatment effects of all possible comparisons in the off-diagonals, and the SUCRA values in the diagonals
 
-\dontshow{load("./data/NMA_results.RData")}
+\dontshow{load("netmodr/data/NMA_results.RData")}
 }
 \description{
 A function to create a heatmap with the treatment effects of all possible comparisons of interventions.

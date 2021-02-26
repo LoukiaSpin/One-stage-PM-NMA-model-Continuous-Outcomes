@@ -25,5 +25,5 @@ rankogram.sucra.plots(net = res, drug.names = drug.names)
 \references{
 Salanti G, Ades AE, Ioannidis JP. Graphical methods and numerical summaries for presenting results from multiple-treatment meta-analysis: an overview and tutorial. J Clin Epidemiol. 2011;64(2):163-71.
 
-\dontshow{load("./data/NMA_results.RData")}
+\dontshow{load("netmodr/data/NMA_results.RData")}
 }

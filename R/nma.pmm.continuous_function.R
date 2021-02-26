@@ -43,10 +43,10 @@
 #'
 #' ### Run a random-effects network meta-analysis with consistency equations for the standardised mean difference
 #' ### assuming missing at random for identical, common informative missingness difference of means.
-#' nma.continuous.full.model(data = data, measure = "SMD", assumption = "IDE-COMMON", mean.misspar = 0, var.misspar = 1, D = 0, n.chains = 3, n.iter = 10000, n.burnin = 1000, n.thin = 1)
+#' run.model(data = data, measure = "SMD", assumption = "IDE-COMMON", mean.misspar = 0, var.misspar = 1, D = 0, n.chains = 3, n.iter = 10000, n.burnin = 1000, n.thin = 1)
 #'
 #' @export
-nma.continuous.full.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.iter, n.burnin, n.thin){
+run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.iter, n.burnin, n.thin){
 
   ## Arm-level, wide-format dataset
   (y0 <- data %>% dplyr::select(starts_with("y")))            # Observed mean value in each arm of every trial
