@@ -48,68 +48,142 @@
 #' @export
 run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.iter, n.burnin, n.thin){
 
-  ## Arm-level, wide-format dataset
-  (y0 <- data %>% dplyr::select(starts_with("y")))            # Observed mean value in each arm of every trial
-  (sd0 <- data %>% dplyr::select(starts_with("sd")))          # Observed standard deviation in each arm of every trial
-  (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
-  (c <- data %>% dplyr::select(starts_with("c")))             # Number completers in each arm of every trial
-  (se0 <- sd0/sqrt(c))                                        # Observed standard error in each arm of every trial
-  (N <- m + c)                                                # Number of randomised participants in each arm of every trial
-  (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
-  na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
-  nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
-  ns <- length(y0[, 1])                                       # Total number of included trials per network
-  ref <- which.max(table(as.matrix(t)))                       # Reference intervention per network: the most frequently appeared intervention in the network
-  # Trial-specific observed pooled standard deviation
-  (sigma <- sqrt(apply((sd0^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na)))
+
+
+  if(measure == "MD" || measure == "SMD"|| measure == "ROM"){
+
+    ## Continuous: arm-level, wide-format dataset
+    (y0 <- data %>% dplyr::select(starts_with("y")))            # Observed mean value in each arm of every trial
+    (sd0 <- data %>% dplyr::select(starts_with("sd")))          # Observed standard deviation in each arm of every trial
+    (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
+    (c <- data %>% dplyr::select(starts_with("c")))             # Number completers in each arm of every trial
+    (se0 <- sd0/sqrt(c))                                        # Observed standard error in each arm of every trial
+    (N <- m + c)                                                # Number of randomised participants in each arm of every trial
+    (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
+    na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
+    nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
+    ns <- length(y0[, 1])                                       # Total number of included trials per network
+    ref <- which.max(table(as.matrix(t)))                       # Reference intervention per network: the most frequently appeared intervention in the network
+    # Trial-specific observed pooled standard deviation
+    (sigma <- sqrt(apply((sd0^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na)))
 
 
 
-  ## Information for the prior distribution on the missingness parameter (IMDOM or logIMROM)
-  M <- ifelse(!is.na(y0), mean.misspar, NA)  # Vector of the mean value of the normal distribution of the informative missingness parameter as the number of arms in trial i (independent structure)
-  prec.misspar <- 1/var.misspar
-  psi.misspar <- sqrt(var.misspar)           # the lower bound of the uniform prior distribution for the prior standard deviation of the missingness parameter (hierarchical structure)
-  cov.misspar <- 0.5*var.misspar             # covariance of pair of missingness parameters in a trial (independent structure)
+    ## Information for the prior distribution on the missingness parameter (IMDOM or logIMROM)
+    M <- ifelse(!is.na(y0), mean.misspar, NA)  # Vector of the mean value of the normal distribution of the informative missingness parameter as the number of arms in trial i (independent structure)
+    prec.misspar <- 1/var.misspar
+    psi.misspar <- sqrt(var.misspar)           # the lower bound of the uniform prior distribution for the prior standard deviation of the missingness parameter (hierarchical structure)
+    cov.misspar <- 0.5*var.misspar             # covariance of pair of missingness parameters in a trial (independent structure)
 
 
-  ## Define the pattern-mixture models for various prior structures of the missingness parameter under the random-effects assumption
-  if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
 
-    param.jags <- c("theta", "EM", "tau2", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
+    ## Define the pattern-mixture models for various prior structures of the missingness parameter under the random-effects assumption
+    # Under the Hierarchical structure
+    if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
+
+      param.jags <- c("theta", "EM", "tau2", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
+
+    } else {
+
+      param.jags <- c("theta", "EM", "tau2", "SUCRA", "phi", "effectiveness")
+
+    }
+
+
+
+    # Under the Independent structure with or without SMD as effect measure
+    if (measure == "SMD" & assumption != "IND-CORR") {
+
+      data.jag <- list("y.o" = y0, "se.o" = se0, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "sigma" = sigma, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar, "D" = D)
+
+    } else if (measure == "SMD" & assumption == "IND-CORR"){
+
+      data.jag <- list("y.o" = y0, "se.o" = se0, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "sigma" = sigma, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar, "D" = D)
+
+    } else if (measure != "SMD" & assumption == "IND-CORR") {
+
+      data.jag <- list("y.o" = y0, "se.o" = se0, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar, "D" = D)
+
+    } else {
+
+      data.jag <- list("y.o" = y0, "se.o" = se0, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar, "D" = D)
+
+    }
+
+
+
+    ## Perform the analysis
+    jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
+                    n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
+
 
   } else {
 
-    param.jags <- c("theta", "EM", "tau2", "SUCRA", "phi", "effectiveness")
+    ## Binary: arm-level, wide-format dataset
+    (r <- data %>% dplyr::select(starts_with("r")))             # Number of observed events in each arm of every trial
+    (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
+    (N <- data %>% dplyr::select(starts_with("n")))             # Number randomised participants in each arm of every trial
+    (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
+    na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
+    nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
+    ns <- length(r[, 1])                                        # Total number of included trials per network
+    ref <- which.max(table(as.matrix(t)))                       # Reference intervention per network: the most frequently appeared intervention in the network
+
+
+
+    ## Information for the prior distribution on log IMOR
+    M <- ifelse(!is.na(r), mean.misspar, NA)   # Vector of the mean value of the normal distribution of the informative missingness parameter as the number of arms in trial i (independent structure)
+    prec.misspar <- 1/var.misspar
+    psi.misspar <- sqrt(var.misspar)           # the lower bound of the uniform prior distribution for the prior standard deviation of the missingness parameter (hierarchical structure)
+    cov.misspar <- 0.5*var.misspar             # covariance of pair of missingness parameters in a trial (independent structure)
+
+
+
+    ## Define the pattern-mixture models for various prior structures of the missingness parameter under the random-effects assumption
+    # Under the Hierarchical structure
+    if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
+
+      param.jags <- c("theta", "EM", "tau2", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
+
+    } else {
+
+      param.jags <- c("theta", "EM", "tau2", "SUCRA", "phi", "effectiveness")
+
+    }
+
+
+
+    # Under the Independent structure
+    if (assumption != "IND-CORR") {
+
+      data.jag <- list("r" = r, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar, "D" = D)
+
+    } else {
+
+      data.jag <- list("r" = r, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar, "D" = D)
+
+    }
+
+
+
+    ## Perform the analysis
+    jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
+                    n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
+
 
   }
 
-  if (measure == "SMD" & assumption != "IND-CORR") {
-
-    data.jag <- list("y.o" = y0, "se.o" = se0, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "sigma" = sigma, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar, "D" = D)
-
-  } else if (measure == "SMD" & assumption == "IND-CORR"){
-
-    data.jag <- list("y.o" = y0, "se.o" = se0, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "sigma" = sigma, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar, "D" = D)
-
-  } else if (measure != "SMD" & assumption == "IND-CORR") {
-
-    data.jag <- list("y.o" = y0, "se.o" = se0, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar, "D" = D)
-
-  } else {
-
-    data.jag <- list("y.o" = y0, "se.o" = se0, "m" = m, "N" = N, "t" = t, "na" = na, "nt" = nt, "ns" = ns, "ref" = ref, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar, "D" = D)
-
-  }
 
 
-  jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
-                  n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
-
+  ## Obtain the posterior distribution of the necessary model paramters
   EM <- jagsfit$BUGSoutput$summary[1:(nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   tausq <- jagsfit$BUGSoutput$summary["tau2", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   SUCRA <- jagsfit$BUGSoutput$summary[paste0("SUCRA[", seq(1:nt), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   effectiveness <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + 1):(nt*(nt - 1)*0.5 + nt + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
 
+
+
+  ## Conditions to obtain the posterior distribution of the missingness parameter
   if (assumption == "IDE-COMMON") {
 
     phi <- jagsfit$BUGSoutput$summary["phi", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
