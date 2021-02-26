@@ -108,8 +108,8 @@ league.heatmap <- function(net, drug.names, D){
   ## Hooray, the precious league table as a heatmap!
   p <- ggplot(mat.new, aes(Var2, factor(Var1, level = order.drug[length(order.drug):1]), fill = value2)) +
          geom_tile(aes(fill = value.SUCRA)) +
-         #geom_fit_text(aes(Var2, Var1, label = value, fontface = "bold"), reflow = T) +
-         geom_fit_text(aes(Var2, Var1, label = value, fontface = ifelse(signif.status == "significant", "bold", "plain")), reflow = T) +
+         geom_fit_text(aes(Var2, Var1, label = value, fontface = "bold"), reflow = T) +
+         #geom_fit_text(aes(Var2, Var1, label = value, fontface = ifelse(signif.status == "significant", "bold", "plain")), reflow = T) +
          scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, na.value = "grey70") +
          scale_x_discrete(position = "top") +
          labs(x = "", y = "") +
