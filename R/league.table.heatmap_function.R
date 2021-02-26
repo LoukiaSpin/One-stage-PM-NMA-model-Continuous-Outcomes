@@ -25,7 +25,6 @@
 #' @export
 league.heatmap <- function(net, drug.names, D){
 
-  net <- res2
 
   par <- net$EM; sucra <- net$SUCRA
 
