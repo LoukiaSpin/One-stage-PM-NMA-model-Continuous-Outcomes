@@ -20,10 +20,10 @@
 #' \dontshow{load("netmodr/data/NMA_results.RData")}
 #' @examples
 #' drug.names <- sapply(1:14, function(x) letters[x])
-#' league.table.heatmap(net = res, drug.names = drug.names, D = 0)
+#' league.heatmap(net = res, drug.names = drug.names, D = 0)
 #'
 #' @export
-league.table.heatmap <- function(net, drug.names, D){
+league.heatmap <- function(net, drug.names, D){
 
   par <- net$EM; sucra <- net$SUCRA
 
