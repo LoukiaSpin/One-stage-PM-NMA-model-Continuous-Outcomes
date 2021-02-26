@@ -138,6 +138,48 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
 
 
+  ## Obtain the posterior distribution of the necessary model paramters
+  EM <- jagsfit$BUGSoutput$summary[1:(nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  tausq <- jagsfit$BUGSoutput$summary["tau2", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  SUCRA <- jagsfit$BUGSoutput$summary[paste0("SUCRA[", seq(1:nt), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  delta <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1)), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  effectiveness <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + sum(na - 1) + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+
+
+
+  ## Conditions to obtain the posterior distribution of the missingness parameter
+  if (assumption == "IDE-COMMON") {
+
+    phi <- jagsfit$BUGSoutput$summary["phi", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+
+  } else if (assumption == "HIE-COMMON"){
+
+    phi <- jagsfit$BUGSoutput$summary["mean.phi", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+
+  } else if (assumption == "IDE-TRIAL") {
+
+    phi <- jagsfit$BUGSoutput$summary[paste0("phi[", seq(1:ns), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+
+  } else if (assumption == "HIE-TRIAL") {
+
+    phi <- jagsfit$BUGSoutput$summary[paste0("mean.phi[", seq(1:ns), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+
+  } else if (assumption == "IDE-ARM") {
+
+    phi <- jagsfit$BUGSoutput$summary[paste0("phi[", seq(1:nt), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+
+  } else if (assumption == "HIE-ARM") {
+
+    phi <- jagsfit$BUGSoutput$summary[paste0("mean.phi[", seq(1:nt), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+
+  } else {
+
+    phi <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + nt*nt + 1):(nt*(nt - 1)*0.5 + nt + nt*nt + 1 + sum(na) - 1), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+
+  }
+
+
+
   jagsfit.mcmc <- as.mcmc(jagsfit)
   ## A panel of autocorrelation plots for each chain and every monitored parameter
   autocorrelation <- par(mfrow = c(3, n.chains))
