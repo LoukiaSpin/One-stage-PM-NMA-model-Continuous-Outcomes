@@ -113,6 +113,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
 
     ## Information for the prior distribution on log IMOR
+    mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
     M <- ifelse(!is.na(r), mean.misspar, NA)   # Vector of the mean value of the normal distribution of the informative missingness parameter as the number of arms in trial i (independent structure)
     prec.misspar <- 1/var.misspar
     psi.misspar <- sqrt(var.misspar)           # the lower bound of the uniform prior distribution for the prior standard deviation of the missingness parameter (hierarchical structure)
