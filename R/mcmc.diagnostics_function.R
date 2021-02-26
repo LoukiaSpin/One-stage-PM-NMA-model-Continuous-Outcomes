@@ -191,10 +191,20 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   }
 
-  # An HTML file with a panel of diagnostic plots per monitored paraemter
+  ## An HTML file with a panel of diagnostic plots per monitored paraemter
   mcmcplot <- mcmcplot(jagsfit.mcmc, parms = par)
 
-  R.hat.max <- c(max(EM[, 5]), max(tausq[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), max(phi[, 5]))
+
+  if(assumption == "IDE-COMMON" || assumption == "HIE-COMMON"){
+
+    R.hat.max <- c(max(EM[, 5]), max(tausq[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), phi[5])
+
+  } else {
+
+    R.hat.max <- c(max(EM[, 5]), max(tausq[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), max(phi[, 5]))
+
+  }
+
   conv <- rep(NA, length(R.hat.max))
   for(i in 1:length(R.hat.max)) {
 
