@@ -1,7 +1,7 @@
 #' Perform network meta-analysis for an aggregate binary or continuous outcome with missing participant data
 #'
 #' @param data A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. See 'Format' for the specification of the columns.
-#' @param measure Character string indicating the effect measure with values  \code{"OR"}, \code{"MD"}, \code{"SMD"}, or \code{"ROM"}.
+#' @param measure Character string indicating the effect measure with values \code{"OR"}, \code{"MD"}, \code{"SMD"}, or \code{"ROM"}.
 #' @param assumption Character string indicating the structure of the informative missingness parameter. Set \code{assumption} equal to one of the following: \code{"HIE-COMMON"}, \code{"HIE-TRIAL"}, \code{"HIE-ARM"}, \code{"IDE-COMMON"}, \code{"IDE-TRIAL"}, \code{"IDE-ARM"}, \code{"IND-CORR"}, or \code{"IND-UNCORR"}.
 #' @param mean.misspar A positive non-zero number for the mean of the normal distribution of the informative missingness parameter.
 #' @param var.misspar A positive non-zero number for the variance of the normal distribution of the informative missingness parameter.

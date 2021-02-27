@@ -15,6 +15,9 @@ Imports:
     R2jags,
     mcmcplots,
     ggfittext,
-    reshape2 
+    reshape2,
+    netmeta,
+    gemtc,
+    BUGSnet
 SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)
 RoxygenNote: 7.1.1
