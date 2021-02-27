@@ -17,7 +17,7 @@
 #'  \item{\code{SUCRA}}{The surface under the cumulative ranking curve for each intervention.}
 #'  \item{\code{phi}}{The informative missingness parameter.}
 #'  \item{\code{delta}}{The underlying trial-specific effect estimate. For a multi-arm trial, we estimate \emph{T-1} trial-specific effect estimates, where \emph{T} is the number of interventions in the trial.}
-#'  \item{\code{tausq}}{The between-trial variance assumed to be common for all observed comparisons.}
+#'  \item{\code{tau}}{The between-trial standard deviation assumed to be common for all observed comparisons.}
 #' }
 #'
 #' @format The columns of the data frame \code{data} refer to the following ordered elements for a continuous outcome:
@@ -140,11 +140,11 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
   ## Condition for the hierarchical structure of the missingness parameter
   if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
 
-    param.jags <- c("delta", "EM", "EM.ref", "EM.pred", "pred.ref", "tau2", "SUCRA", "mean.phi", "effectiveness")
+    param.jags <- c("delta", "EM", "EM.ref", "EM.pred", "pred.ref", "tau", "SUCRA", "mean.phi", "effectiveness")
 
   } else {
 
-    param.jags <- c("delta", "EM", "EM.ref", "EM.pred", "pred.ref", "tau2", "SUCRA", "phi", "effectiveness")
+    param.jags <- c("delta", "EM", "EM.ref", "EM.pred", "pred.ref", "tau", "SUCRA", "phi", "effectiveness")
 
   }
 
@@ -164,7 +164,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
   delta <- jagsfit$BUGSoutput$summary[(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + 1):(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1)), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   effectiveness <- jagsfit$BUGSoutput$summary[(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1) + 1):(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   pred.ref <- jagsfit$BUGSoutput$summary[paste0("pred.ref[", seq(1:nt)[-ref], "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  tausq <- jagsfit$BUGSoutput$summary["tau2", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  tau <- jagsfit$BUGSoutput$summary["tau", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
 
 
   ## Conditions to obtain the posterior distribution of the missingness parameter
@@ -198,7 +198,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   }
 
-  return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tausq = tausq, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi))
+  return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tau = tau, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi))
 
 }
 

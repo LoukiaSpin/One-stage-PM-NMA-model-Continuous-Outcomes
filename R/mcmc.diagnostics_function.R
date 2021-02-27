@@ -122,11 +122,11 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
   ## Condition for the hierarchical structure of the missingness parameter
   if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
 
-    param.jags <- c("delta", "EM", "tau2", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
+    param.jags <- c("delta", "EM", "tau", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
 
   } else {
 
-    param.jags <- c("delta", "EM", "tau2", "SUCRA", "phi", "effectiveness")
+    param.jags <- c("delta", "EM", "tau", "SUCRA", "phi", "effectiveness")
 
   }
 
@@ -140,7 +140,7 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   ## Obtain the posterior distribution of the necessary model paramters
   EM <- jagsfit$BUGSoutput$summary[1:(nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  tausq <- jagsfit$BUGSoutput$summary["tau2", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  tau <- jagsfit$BUGSoutput$summary["tau", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   SUCRA <- jagsfit$BUGSoutput$summary[paste0("SUCRA[", seq(1:nt), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   delta <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1)), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   effectiveness <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + sum(na - 1) + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
@@ -197,11 +197,11 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   if(assumption == "IDE-COMMON" || assumption == "HIE-COMMON"){
 
-    R.hat.max <- c(max(EM[, 5]), max(tausq[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), phi[5])
+    R.hat.max <- c(max(EM[, 5]), max(tau[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), phi[5])
 
   } else {
 
-    R.hat.max <- c(max(EM[, 5]), max(tausq[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), max(phi[, 5]))
+    R.hat.max <- c(max(EM[, 5]), max(tau[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), max(phi[, 5]))
 
   }
 
@@ -214,7 +214,7 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   # Check convergence for all monitored parameters using the Rhat
   convergence <- data.frame(R.hat.max, conv)
-  rownames(convergence) <- c("EM", "tausq", "SUCRA", "effectiveness", "phi")
+  rownames(convergence) <- c("EM", "tau", "SUCRA", "effectiveness", "phi")
   colnames(convergence) <- c("R.hat max", "convergence status")
 
   return(list(convergence = convergence))

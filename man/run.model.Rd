@@ -57,7 +57,7 @@ An R2jags output on the summaries of the posterior distribution, and the Gelmanâ
  \item{\code{SUCRA}}{The surface under the cumulative ranking curve for each intervention.}
  \item{\code{phi}}{The informative missingness parameter.}
  \item{\code{delta}}{The underlying trial-specific effect estimate. For a multi-arm trial, we estimate \emph{T-1} trial-specific effect estimates, where \emph{T} is the number of interventions in the trial.}
- \item{\code{tausq}}{The between-trial variance assumed to be common for all observed comparisons.}
+ \item{\code{tau}}{The between-trial standard deviation assumed to be common for all observed comparisons.}
 }
 }
 \description{

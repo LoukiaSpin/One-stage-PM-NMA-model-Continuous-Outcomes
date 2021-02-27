@@ -142,7 +142,7 @@ netplot <- function(data, outcome, drug.names, show.bias, ...){
   ## Obtain the network plot
   if(show.bias == T) {
 
-    net.plot(transform, node.lab.cex = 1.5,
+    net.plot(transform, node.lab.cex = 1.5, node.scale = 1, edge.scale = 1, label.offset1 = 1.5,
              node.colour = ifelse(risk.drug <= 0.05, "green4", ifelse(risk.drug > 0.20, "brown1", "orange")),
              edge.colour = ifelse(risk.comp <= 0.05, "green4", ifelse(risk.comp > 0.20, "brown1", "orange")), ...)
 
