@@ -18,6 +18,7 @@ Imports:
     reshape2,
     netmeta,
     gemtc,
-    BUGSnet
+    BUGSnet,
+    pcnetmeta
 SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)
 RoxygenNote: 7.1.1

@@ -3,17 +3,22 @@
 #' @description
 #' A function to create the network plot and illustrate the risk of bias due to missing outcome data in each node and link using different colours.
 #' The node refers to the intervention and the link refers to the observed pairwise comparison. The risk of bias due to missing outcome data
-#' can be low (the proportion of missing outcome data is up to 5%), moderate (the proportion of missing outcome data is more than 5% and up to 20%),
-#' or high (the proportion of missing outcome data is more than 20%). Green, orange and red represent low, moderate, and high risk of bias.
+#' can be low (the proportion of missing outcome data is up to 5\%), moderate (the proportion of missing outcome data is more than 5\% and up to 20\%),
+#' or high (the proportion of missing outcome data is more than 20\%). Green, orange and red represent low, moderate, and high risk of bias.
 #' For each node, the risk of bias is determined by the total proportion of missing outcome data in the corresponding intervention, namely, the ratio of
 #' the sum of missing outcome data to the sum of randomised in that intervention.
 #' For each link, the risk of bias is determined by the total proportion of missing outcome data across the corresponding trials, namely, the ratio of
-#' the sum of missing outcome data to the sum of randomised in these trials.
+#' the sum of missing outcome data to the sum of randomised in these trials. The function uses the \code{net.plot} function from the BUGSnet package to
+#' colour the nodes and links according to the risk of bias due to missing outcome data. The user can specify to plot the network plot without illustrating
+#' the risk of bias due to missing outcome data. In this case, the function uses the \code{nma.networkplot} function from the pcnetmeta package to create
+#' the network plot. The fucntion allows the user to incorporate the arguments of \code{net.plot} (when \code{show.bias = TRUE}) and \code{nma.networkplot}
+#' (when \code{show.bias = FALSE}).
 #'
 #' @param data A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models.
 #' See 'Format' in \code{nma.continuous.full.model} for the specification of the columns.
-#' @param drug.names A vector of characteristics with name of the interventions as appear in the function \code{nma.continuous.full.model}.
+#' @param drug.names A vector of characteristics with name of the interventions as appear in the function \code{run.model}.
 #' @param outcome Character string indicating the type of outcome with values \code{"binary"}, or \code{"continuous"}.
+#' @param show.bias Indicates whether to show the risk of bias in the nodes and links.
 #'
 #' @return A network plot with coloured nodes and links to indicate the risk of bias due to missing outcome data.
 #'
@@ -26,7 +31,7 @@
 #' netplot(data = res, outcome = "binary, drug.names = drug.names)
 #'
 #' @export
-netplot <- function(data, outcome, drug.names){
+netplot <- function(data, outcome, drug.names, show.bias, ...){
 
 
   if(outcome == "binary") {
@@ -57,9 +62,18 @@ netplot <- function(data, outcome, drug.names){
 
     ## one row per study arm
     transform0 <- mtc.data.studyrow(cbind(t, r, n, na..), armVars = c('treatment'= 't', 'response'='r', 'sampleSize'='n'), nArmsVar='na')
+    (transform0$treatment1 <- as.numeric(as.factor(transform0$treatment)))
     for(i in 1:length(unique(transform0$study))){
       transform0[transform0$treatment == i, 2] <- drug.names[i]
     }
+
+
+    ## Prepare data to use BUGSnet
+    transform <- data.prep(arm.data = transform0, varname.t = "treatment", varname.s = "study")
+
+
+    ## Characteristics of the networks (except for missing outcome data)
+    network.char <- net.tab(data = transform, outcome = "response", N = "sampleSize", type.outcome = "binomial", time = NULL)
 
 
   } else {
@@ -70,7 +84,7 @@ netplot <- function(data, outcome, drug.names){
     (c <- data %>% dplyr::select(starts_with("c")))
     (se <- sd/sqrt(c))
     (m <- data %>% dplyr::select(starts_with("m")))
-    (n <- data %>% dplyr::select(starts_with("n")))
+    (n <- c + m)
     (t <- data %>% dplyr::select(starts_with("t")))
     (nt <- length(table(as.matrix(t))))
     (ns <- length(y[, 1]))
@@ -93,9 +107,18 @@ netplot <- function(data, outcome, drug.names){
 
     ## one row per study arm
     transform0 <- mtc.data.studyrow(cbind(t, y, se, n, na..), armVars = c('treatment'= 't', 'mean'='y', 'std.err'='se', 'sampleSize'='n'), nArmsVar='na')
+    (transform0$treatment1 <- as.numeric(as.factor(transform0$treatment)))
     for(i in 1:length(unique(transform0$study))){
       transform0[transform0$treatment == i, 2] <- drug.names[i]
     }
+
+
+    ## Prepare data to use BUGSnet
+    transform <- data.prep(arm.data = transform0, varname.t = "treatment", varname.s = "study")
+
+
+    ## Characteristics of the networks (except for missing outcome data)
+    network.char <- net.tab(data = transform, outcome = "mean", N = "sampleSize", type.outcome = "continuous", time = NULL)
 
   }
 
@@ -116,18 +139,24 @@ netplot <- function(data, outcome, drug.names){
   risk.comp <- round(aggregate(trial.mod, by = list(comp), sum)[, 2]/aggregate(trial.size, by = list(comp), sum)[, 2], 2)
 
 
-  ## Replace coded 'treatment' with the original names
-  transform <- data.prep(arm.data = transform0, varname.t = "treatment", varname.s = "study")
-
-
   ## Obtain the network plot
-  net.plot(transform, node.lab.cex = 1.5,
-           node.colour = ifelse(risk.drug <= 0.05, "green4", ifelse(risk.drug > 0.20, "brown1", "orange")),
-           edge.colour = ifelse(risk.comp <= 0.05, "green4", ifelse(risk.comp > 0.20, "brown1", "orange")))
+  if(show.bias == T) {
 
-#  legend("bottom", legend = c("low", "moderate", "high"), horiz = T, seg.len = 0.2, x.intersp = 0.1,
-#         inset = c(0, -0.1), text.width = c(0, 0.08, 0.05),
-#         bty = "n", xpd = TRUE, cex = 1.2, lty = c(1, 1, 1), lwd = c(2, 2, 2), col = c("green4", "orange", "brown1"))
+    net.plot(transform, node.lab.cex = 1.5,
+             node.colour = ifelse(risk.drug <= 0.05, "green4", ifelse(risk.drug > 0.20, "brown1", "orange")),
+             edge.colour = ifelse(risk.comp <= 0.05, "green4", ifelse(risk.comp > 0.20, "brown1", "orange")), ...)
+
+    #  legend("bottom", legend = c("low", "moderate", "high"), horiz = T, seg.len = 0.2, x.intersp = 0.1,
+    #         inset = c(0, -0.1), text.width = c(0, 0.08, 0.05),
+    #         bty = "n", xpd = TRUE, cex = 1.2, lty = c(1, 1, 1), lwd = c(2, 2, 2), col = c("green4", "orange", "brown1"))
+
+  } else {
+
+    nma.networkplot(study, treatment1, data = transform0, trtname = drug.names, alphabetic = F, title = "", text.cex = 1.7, multi.show = T, ...)
+
+  }
+
+  return(network.char)
 
 }
 
