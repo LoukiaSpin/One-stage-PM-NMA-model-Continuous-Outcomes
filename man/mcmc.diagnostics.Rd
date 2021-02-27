@@ -34,7 +34,7 @@ mcmc.diagnostics(
 
 \item{var.misspar}{A positive non-zero number for the variance of the normal distribution of the informative missingness parameter.}
 
-\item{D}{A binary number for the direction of the outcome. Set \code{direction = 0} for a positive outcome and \code{direction = 1} for a negative outcome.}
+\item{D}{A binary number for the direction of the outcome. Set \code{direction = 1} for a positive outcome and \code{direction = 0} for a negative outcome.}
 
 \item{n.chains}{Integer specifying the number of chains for the MCMC sampling; an argument of the \code{\link[R2jags]{jags}} function.}
 

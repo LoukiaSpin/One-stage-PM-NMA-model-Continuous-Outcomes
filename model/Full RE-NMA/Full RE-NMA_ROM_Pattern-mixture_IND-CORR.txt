@@ -83,19 +83,22 @@ model{
      SUCRA[t] <- sum(cumeffectiveness[t, 1:(nt - 1)])/(nt - 1)
                   }  
 
-   ## Obtain reference-specific effect measure (EM, log scale)
+   ## Obtain reference-specific effect measure (EM, log scale) and its prediction
    for(t in 1:(ref - 1)){
      EM.ref[t] <- d[t] - d[ref]
+     pred.ref[t] ~ dnorm(EM.ref[t], prec)
                   }
 
    for(t in (ref + 1):nt){
      EM.ref[t] <- d[t] - d[ref]
+     pred.ref[t] ~ dnorm(EM.ref[t], prec)
                   }
 
-   ## Obtain all possible (unique) pairwise comparisons (log scale)
+   ## Obtain all possible (unique) pairwise comparisons (log scale) and their prediction
    for(c in 1:(nt - 1)){
      for(k in (c + 1):nt){
        EM[k, c] <- d[k] - d[c]
+       EM.pred[k, c] ~ dnorm(EM[k, c], prec)
                           }
                          }
 

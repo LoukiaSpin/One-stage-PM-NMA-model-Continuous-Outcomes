@@ -5,7 +5,7 @@
 #' @param assumption Character string indicating the structure of the informative missingness parameter. Set \code{assumption} equal to one of the following: \code{"HIE-COMMON"}, \code{"HIE-TRIAL"}, \code{"HIE-ARM"}, \code{"IDE-COMMON"}, \code{"IDE-TRIAL"}, \code{"IDE-ARM"}, \code{"IND-CORR"}, or \code{"IND-UNCORR"}.
 #' @param mean.misspar A positive non-zero number for the mean of the normal distribution of the informative missingness parameter.
 #' @param var.misspar A positive non-zero number for the variance of the normal distribution of the informative missingness parameter.
-#' @param D A binary number for the direction of the outcome. Set \code{direction = 0} for a positive outcome and \code{direction = 1} for a negative outcome.
+#' @param D A binary number for the direction of the outcome. Set \code{direction = 1} for a positive outcome and \code{direction = 0} for a negative outcome.
 #' @param n.chains Integer specifying the number of chains for the MCMC sampling; an argument of the \code{\link[R2jags]{jags}} function.
 #' @param n.iter Integer specifying the number of Markov chains for the MCMC sampling; an argument of the \code{\link[R2jags]{jags}} function.
 #' @param n.burnin Integer specifying the number of iterations to discard at the beginning of the MCMC sampling; an argument of the \code{\link[R2jags]{jags}} function.
@@ -140,15 +140,15 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
   ## Condition for the hierarchical structure of the missingness parameter
   if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
 
-    param.jags <- c("delta", "EM", "tau2", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
+    param.jags <- c("delta", "EM", "EM.ref", "EM.pred", "pred.ref", "tau2", "SUCRA", "mean.phi", "effectiveness")
 
   } else {
 
-    param.jags <- c("delta", "EM", "tau2", "SUCRA", "phi", "effectiveness")
+    param.jags <- c("delta", "EM", "EM.ref", "EM.pred", "pred.ref", "tau2", "SUCRA", "phi", "effectiveness")
 
   }
 
-
+  c(seq(1:4), seq(6:8))
 
   ## Run the Bayesian analysis
   jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
@@ -158,11 +158,13 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   ## Obtain the posterior distribution of the necessary model paramters
   EM <- jagsfit$BUGSoutput$summary[1:(nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  tausq <- jagsfit$BUGSoutput$summary["tau2", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  EM.pred <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + 1):(2*nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  EM.ref <- jagsfit$BUGSoutput$summary[paste0("EM.ref[", seq(1:nt)[-ref], "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   SUCRA <- jagsfit$BUGSoutput$summary[paste0("SUCRA[", seq(1:nt), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  delta <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1)), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  effectiveness <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + sum(na - 1) + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-
+  delta <- jagsfit$BUGSoutput$summary[(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + 1):(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1)), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  effectiveness <- jagsfit$BUGSoutput$summary[(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1) + 1):(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  pred.ref <- jagsfit$BUGSoutput$summary[paste0("pred.ref[", seq(1:nt)[-ref], "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  tausq <- jagsfit$BUGSoutput$summary["tau2", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
 
 
   ## Conditions to obtain the posterior distribution of the missingness parameter
@@ -196,7 +198,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   }
 
-  return(list(EM = EM, tausq = tausq, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi))
+  return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tausq = tausq, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi))
 
 }
 

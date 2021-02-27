@@ -13,17 +13,16 @@
 #'
 #' @param net An object of S3 class \code{nma.continuous.full.model}.
 #' @param drug.names A vector of characteristics with name of the interventions as appear in the function \code{nma.continuous.full.model}.
-#' @param D A binary number for the direction of the outcome. Set \code{direction = 0} for a positive outcome and \code{direction = 1} for a negative outcome.
 #'
 #' @return A heatmap of the treatment effects of all possible comparisons in the off-diagonals, and the SUCRA values in the diagonals
 #'
 #' \dontshow{load("netmodr/data/NMA_results.RData")}
 #' @examples
 #' drug.names <- sapply(1:14, function(x) letters[x])
-#' league.heatmap(net = res, drug.names = drug.names, D = 0)
+#' league.heatmap(net = res, drug.names = drug.names)
 #'
 #' @export
-league.heatmap <- function(net, drug.names, D){
+league.heatmap <- function(net, drug.names){
 
 
   par <- net$EM; sucra <- net$SUCRA
@@ -59,11 +58,11 @@ league.heatmap <- function(net, drug.names, D){
   drug.order.col <- drug.order.row <- order(drug.names[order(-sucra[, 1])])
 
 
-  ## Order interventions according to their SUCRA value (from best to worst)
+  ## Order interventions according to their SUCRA value (from the best to the worst)
   order.drug <- drug.names[order(-sucra[, 1])]
 
 
-  ## Symmetric matrix for effect measure and its bounds after ordering rows and columns from the best to worst intervention
+  ## Symmetric matrix for effect measure and its bounds after ordering rows and columns from the best to the worst intervention
   point <- point1[order(drug.order.col), order(drug.order.row)]
   lower <- lower1[order(drug.order.col), order(drug.order.row)]
   upper <- upper1[order(drug.order.col), order(drug.order.row)]
@@ -92,15 +91,17 @@ league.heatmap <- function(net, drug.names, D){
 
   ## Necessary sub-dataset to color the cells according to the value of the effect measure
   # Reflect the upper triangle of the effect measure to the lower triangle
-  dummy <- matrix(1, nrow = length(drug.names), ncol = length(drug.names))
-  dummy[lower.tri(dummy, diag = F)] <- -1
-  mat <- point*dummy
-  diag(mat) <- ifelse(D == 0, min(par[, 1]), max(par[, 1]))
-  colnames(mat) <- order.drug; rownames(mat) <- order.drug
+  #dummy <- matrix(1, nrow = length(drug.names), ncol = length(drug.names))
+  #dummy[lower.tri(dummy, diag = F)] <- -1
+  #mat <- point*dummy
+  mat <- point
+ # diag(mat) <- ifelse(D == 0, min(par[, 1]), max(par[, 1]))
+ # colnames(mat) <- order.drug; rownames(mat) <- order.drug
 
 
   ## Merge both datasets to be used for ggplot2
-  mat.new <- cbind(mat.new1, melt(mat, na.rm = F)[, 3]*D + melt(mat, na.rm = F)[, 3]*(D - 1))
+  #mat.new <- cbind(mat.new1, melt(mat, na.rm = F)[, 3]*(D - 1) + melt(mat, na.rm = F)[, 3]*D)
+  mat.new <- cbind(mat.new1, melt(mat, na.rm = F)[, 3])
   colnames(mat.new) <- c("Var1", "Var2", "value", "value2")
 
 
