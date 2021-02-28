@@ -102,7 +102,7 @@ league.heatmap.pred <- function(net, drug.names){
 
 
   ## Upper triangle for effect estimates, lower triangle fro predictions
-  dummy <- melt(lower.tri(matrix(1:196, nrow = 14, ncol = 14), diag = T))
+  dummy <- melt(lower.tri(matrix(1:(length(drug.names)*length(drug.names)), nrow = length(drug.names), ncol = length(drug.names)), diag = T))
   mat.final <- mat.new1
   mat.final[, 3] <- ifelse(dummy[, 3] == T, mat.new.pred1[, 3], mat.new1[, 3])
 
