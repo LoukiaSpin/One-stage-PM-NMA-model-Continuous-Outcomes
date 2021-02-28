@@ -1,16 +1,18 @@
+#' Enhances balloon plot
 #'
+#' @param net An object of S3 class \code{run.sensitivity}.
+#' @param drug.names A vector of characters with the names of the interventions in the order they appear in the function \code{run.sensitivity}.
+#' @param D A binary number for the direction of the outcome. Set \code{D = 1} for a positive outcome and \code{D = 0} for a negative outcome.
 #'
 #' @export
-balloon.plot.mod <- function(ES.mat, compar, outcome, direction, drug.names){  # Check heatmap to decide on the 'compar'
+balloon.plot.mod <- function(sens, compar, outcome, D, drug.names){
 
 
-  ## Load necessary libraries
-  library("ggplot2")
-
+  ES.all <- sens$EM
 
   ## Define the position and number of the scenarios
   scenarios <- c(1, 2, 3, 4, 5)
-  (nt <- (1 + sqrt(1 + 8*(length(ES.mat[, 1])/length(scenarios)^2)))/2)  # The quadratic formula for the roots of the general quadratic equation
+  (nt <- (1 + sqrt(1 + 8*(length(ES.all[, 1])/length(scenarios)^2)))/2)  # The quadratic formula for the roots of the general quadratic equation
 
 
   ## Each parameter is a matrix with rows referring to the scenarios and columns referring to the possible comparisons
@@ -19,19 +21,19 @@ balloon.plot.mod <- function(ES.mat, compar, outcome, direction, drug.names){  #
     for(j in 1:(nt*(nt - 1))/2){
 
       # Effect estimate (e.g. posterior mean of an effect measure)
-      ES[i, j] <- round(ES.mat[j + (nt*(nt - 1)/2)*(i - 1), 1], 2)
+      ES[i, j] <- round(ES.all[j + (nt*(nt - 1)/2)*(i - 1), 1], 2)
 
       # Uncertainty arounf the effect estimate (e.g. posterior standard deviation of an effect measure)
-      sd.ES[i, j] <- round(ES.mat[j + (nt*(nt - 1)/2)*(i - 1), 2], 2)
+      sd.ES[i, j] <- round(ES.all[j + (nt*(nt - 1)/2)*(i - 1), 2], 2)
 
       # Standardise the effect estimate according to the outcome type (positive or negative)
-      ES.stand[i, j] <- ifelse(direction == "positive", ES[i, j]/sd.ES[i, j], -ES[i, j]/sd.ES[i, j])
+      ES.stand[i, j] <- ifelse(D == 1, ES[i, j]/sd.ES[i, j], -ES[i, j]/sd.ES[i, j])
 
-      # Lower bound of the 95% (credible or confidence) intrval of the effect estimate
-      lower.ES[i, j] <- ES.mat[j + (nt*(nt - 1)/2)*(i - 1), 3]
+      # Lower bound of the 95% (credible or confidence) interval of the effect estimate
+      lower.ES[i, j] <- ES.all[j + (nt*(nt - 1)/2)*(i - 1), 3]
 
-      # Upper bound of the 95% (credible or confidence) intrval of the effect estimate
-      upper.ES[i, j] <- ES.mat[j + (nt*(nt - 1)/2)*(i - 1), 4]
+      # Upper bound of the 95% (credible or confidence) interval of the effect estimate
+      upper.ES[i, j] <- ES.all[j + (nt*(nt - 1)/2)*(i - 1), 4]
 
       # Dummy variable to indicate presence or absence of statistical significance
       signif[i, j] <- ifelse(lower.ES[i, j] < 0 & upper.ES[i, j] > 0, "yes", "no")
