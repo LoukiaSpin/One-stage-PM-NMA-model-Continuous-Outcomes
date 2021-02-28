@@ -56,14 +56,14 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
     (y0 <- data %>% dplyr::select(starts_with("y")))            # Observed mean value in each arm of every trial
     (sd0 <- data %>% dplyr::select(starts_with("sd")))          # Observed standard deviation in each arm of every trial
     (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
-    (c <- data %>% dplyr::select(starts_with("c")))             # Number completers in each arm of every trial
+    (c <- data %>% dplyr::select(starts_with("c")))             # Number of completers in each arm of every trial
     (se0 <- sd0/sqrt(c))                                        # Observed standard error in each arm of every trial
     (N <- m + c)                                                # Number of randomised participants in each arm of every trial
     (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
     na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
     nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
     ns <- length(y0[, 1])                                       # Total number of included trials per network
-    ref <- which.max(table(as.matrix(t)))                       # Reference intervention per network: the most frequently appeared intervention in the network
+    ref <- ifelse(nt > 2, which.max(table(as.matrix(t))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
     # Trial-specific observed pooled standard deviation
     (sigma <- sqrt(apply((sd0^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na)))
 
@@ -108,7 +108,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
     na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
     nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
     ns <- length(r[, 1])                                        # Total number of included trials per network
-    ref <- which.max(table(as.matrix(t)))                       # Reference intervention per network: the most frequently appeared intervention in the network
+    ref <- ifelse(nt > 2, which.max(table(as.matrix(t))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
 
 
 
@@ -198,7 +198,15 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   }
 
-  return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tau = tau, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi))
+  if(nt > 2) {
+
+    return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tau = tau, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi))
+
+  } else {
+
+    return(list(EM = EM, EM.pred = EM.pred, tau = tau, delta = delta, phi = phi))
+
+  }
 
 }
 

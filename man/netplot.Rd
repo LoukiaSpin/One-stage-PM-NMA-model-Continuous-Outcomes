@@ -4,13 +4,11 @@
 \alias{netplot}
 \title{The network plot}
 \usage{
-netplot(data, outcome, drug.names, show.bias, ...)
+netplot(data, drug.names, show.bias, ...)
 }
 \arguments{
 \item{data}{A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models.
 See 'Format' in \code{nma.continuous.full.model} for the specification of the columns.}
-
-\item{outcome}{Character string indicating the type of outcome with values \code{"binary"}, or \code{"continuous"}.}
 
 \item{drug.names}{A vector of characteristics with name of the interventions as appear in the function \code{run.model}.}
 
@@ -34,4 +32,12 @@ colour the nodes and links according to the risk of bias due to missing outcome 
 the risk of bias due to missing outcome data. In this case, the function uses the \code{nma.networkplot} function from the pcnetmeta package to create
 the network plot. The fucntion allows the user to incorporate the arguments of \code{net.plot} (when \code{show.bias = TRUE}) and \code{nma.networkplot}
 (when \code{show.bias = FALSE}).
+}
+\examples{
+### Show the data (one-trial-per-row format)
+(data <- as.data.frame(one.stage.dataset.NMA[[3]]))
+drug.names <- sapply(1:8, function(x) letters[x])
+
+netplot(data = res, drug.names = drug.names)
+
 }

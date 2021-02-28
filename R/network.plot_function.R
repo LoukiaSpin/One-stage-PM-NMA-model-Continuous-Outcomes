@@ -17,7 +17,6 @@
 #' @param data A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models.
 #' See 'Format' in \code{nma.continuous.full.model} for the specification of the columns.
 #' @param drug.names A vector of characteristics with name of the interventions as appear in the function \code{run.model}.
-#' @param outcome Character string indicating the type of outcome with values \code{"binary"}, or \code{"continuous"}.
 #' @param show.bias Indicates whether to show the risk of bias in the nodes and links.
 #'
 #' @return A network plot with coloured nodes and links to indicate the risk of bias due to missing outcome data.
@@ -28,99 +27,44 @@
 #' (data <- as.data.frame(one.stage.dataset.NMA[[3]]))
 #' drug.names <- sapply(1:8, function(x) letters[x])
 #'
-#' netplot(data = res, outcome = "binary, drug.names = drug.names)
+#' netplot(data = res, drug.names = drug.names)
 #'
 #' @export
-netplot <- function(data, outcome, drug.names, show.bias, ...){
+netplot <- function(data, drug.names, show.bias, ...){
 
 
-  if(outcome == "binary") {
-
-
-    ## Obtain dataset
-    (r <- data %>% dplyr::select(starts_with("r")))
-    (m <- data %>% dplyr::select(starts_with("m")))
-    (n <- data %>% dplyr::select(starts_with("n")))
-    (t <- data %>% dplyr::select(starts_with("t")))
-    (nt <- length(table(as.matrix(t))))
-    (ns <- length(r[, 1]))
-    na..  <- rep(0, length(r[, 1]))
-    for(i in 1:length(r[, 1])){
-      na..[i] <- table(!is.na(t[i, ]))["TRUE"]
-    }
-
-
-    ## Prepare data for gemtc
-    data.gemtc <- cbind(t, r, n, na..)
-
-
-    ## Rename columns to agree with gemtc
-    names(r) <- paste0("r..",1:length(r[1, ]),".")
-    names(n) <- paste0("n..",1:length(n[1, ]),".")
-    names(t) <- paste0("t..",1:length(t[1, ]),".")
-
-
-    ## one row per study arm
-    transform0 <- mtc.data.studyrow(cbind(t, r, n, na..), armVars = c('treatment'= 't', 'response'='r', 'sampleSize'='n'), nArmsVar='na')
-    (transform0$treatment1 <- as.numeric(as.factor(transform0$treatment)))
-    for(i in 1:length(unique(transform0$study))){
-      transform0[transform0$treatment == i, 2] <- drug.names[i]
-    }
-
-
-    ## Prepare data to use BUGSnet
-    transform <- data.prep(arm.data = transform0, varname.t = "treatment", varname.s = "study")
-
-
-    ## Characteristics of the networks (except for missing outcome data)
-    network.char <- net.tab(data = transform, outcome = "response", N = "sampleSize", type.outcome = "binomial", time = NULL)
-
-
-  } else {
-
-    ## Obtain dataset
-    (y <- data %>% dplyr::select(starts_with("y")))
-    (sd <- data %>% dplyr::select(starts_with("sd")))
-    (c <- data %>% dplyr::select(starts_with("c")))
-    (se <- sd/sqrt(c))
-    (m <- data %>% dplyr::select(starts_with("m")))
-    (n <- c + m)
-    (t <- data %>% dplyr::select(starts_with("t")))
-    (nt <- length(table(as.matrix(t))))
-    (ns <- length(y[, 1]))
-    na..  <- rep(0, length(y[, 1]))
-    for(i in 1:length(y[, 1])){
-      na..[i] <- table(!is.na(t[i, ]))["TRUE"]
-    }
-
-
-    ## Prepare data for gemtc
-    data.gemtc <- cbind(t, y, se, n, na..)
-
-
-    ## Rename columns to agree with gemtc
-    names(y) <- paste0("y..",1:length(y[1, ]),".")
-    names(se) <- paste0("se..",1:length(se[1, ]),".")
-    names(n) <- paste0("n..",1:length(n[1, ]),".")
-    names(t) <- paste0("t..",1:length(t[1, ]),".")
-
-
-    ## one row per study arm
-    transform0 <- mtc.data.studyrow(cbind(t, y, se, n, na..), armVars = c('treatment'= 't', 'mean'='y', 'std.err'='se', 'sampleSize'='n'), nArmsVar='na')
-    (transform0$treatment1 <- as.numeric(as.factor(transform0$treatment)))
-    for(i in 1:length(unique(transform0$study))){
-      transform0[transform0$treatment == i, 2] <- drug.names[i]
-    }
-
-
-    ## Prepare data to use BUGSnet
-    transform <- data.prep(arm.data = transform0, varname.t = "treatment", varname.s = "study")
-
-
-    ## Characteristics of the networks (except for missing outcome data)
-    network.char <- net.tab(data = transform, outcome = "mean", N = "sampleSize", type.outcome = "continuous", time = NULL)
-
+  ## Obtain dataset
+  (m <- data %>% dplyr::select(starts_with("m")))
+  (n <- data %>% dplyr::select(starts_with("n")))
+  (t <- data %>% dplyr::select(starts_with("t")))
+  (nt <- length(table(as.matrix(t))))
+  (ns <- length(m[, 1]))
+  na..  <- rep(0, length(m[, 1]))
+  for(i in 1:length(m[, 1])){
+    na..[i] <- table(!is.na(t[i, ]))["TRUE"]
   }
+
+
+  ## Rename columns to agree with gemtc
+  names(m) <- paste0("m..",1:length(m[1, ]),".")
+  names(n) <- paste0("n..",1:length(n[1, ]),".")
+  names(t) <- paste0("t..",1:length(t[1, ]),".")
+
+
+  ## one row per study arm
+  transform0 <- mtc.data.studyrow(cbind(t, m, n, na..), armVars = c('treatment'= 't', 'response'='m', 'sampleSize'='n'), nArmsVar='na')
+  (transform0$treatment1 <- as.numeric(as.factor(transform0$treatment)))
+  for(i in 1:length(unique(transform0$study))){
+    transform0[transform0$treatment == i, 2] <- drug.names[i]
+  }
+
+
+  ## Prepare data to use BUGSnet
+  transform <- data.prep(arm.data = transform0, varname.t = "treatment", varname.s = "study")
+
+
+  ## Characteristics of the networks (except for missing outcome data)
+  network.char <- net.tab(data = transform, outcome = "response", N = "sampleSize", type.outcome = "binomial", time = NULL)
 
 
   ## Turn arm-level to contrast-level dataset
