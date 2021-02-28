@@ -1,8 +1,21 @@
 Package: netmodr
 Type: Package
-Title: Addressing missing participants with aggregate continuous outcome data in network meta-analysis
+Title: Addressing missing participants with aggregate binary or continuous outcome data in network meta-analysis
 Version: 0.1.0
-Author: Loukia Spineli
+Authors@R: 
+  c(person(given = "Loukia",
+           family = "Spineli",
+           role = c("aut", "cre"),
+           email = "Spineli.Loukia@mh-hannover.de",
+           comment = c(ORCID = "0000-0001-9515-582X")),
+    person(given = "Chrysostomos",
+           family = "Kalyvas",
+           role = "ctb",
+           comment = c(ORCID = "0000-0003-0606-4518")),
+    person(given = "Katerina",
+           family = "Papadimitropoulou",
+           role = "ctb",
+           comment = c(ORCID = "0000-0002-5732-4044")))
 Maintainer: <Spineli.Loukia@mh-hannover.de>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.

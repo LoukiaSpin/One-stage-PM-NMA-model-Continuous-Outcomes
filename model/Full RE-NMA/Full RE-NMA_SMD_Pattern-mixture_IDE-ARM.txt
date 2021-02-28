@@ -8,6 +8,8 @@
 #      Standardised Mean Difference (SMD) and Informative Missingness Difference of Means (IMDOM)      #
 #                               (Mavridis et al., 2015 - PMID: 25393541)                               #
 #                               <Identical, intervention-specific IMDOM>                               #
+#                   <<Transitive assumed missingness mechanism across interventions>>                  #
+#                                   (Spineli 2019 - PMID: 30223064)                                    #
 #                                                                                                      #
 ########################################################################################################
 
@@ -73,8 +75,16 @@ model{
                           }
 
     ## Prior consideration on identical, intervention-specific IMDOM
-    for(i in 1:nt){
-      phi[i] ~ dnorm(meand.phi, precd.phi)                                
+    # Scenario for the reference intervention
+    phi[ref] ~ dnorm(meand.phi[2], precd.phi)                                        
+
+    # Scenario for the non-reference interventions
+    for(t in 1:(ref - 1)){
+      phi[t] ~ dnorm(meand.phi[1], precd.phi)                                        
+                  }
+
+    for(t in (ref + 1):nt){
+      phi[t] ~ dnorm(meand.phi[1], precd.phi)                                        
                   }
 
     ## Ranking probabilities and SUCRA values

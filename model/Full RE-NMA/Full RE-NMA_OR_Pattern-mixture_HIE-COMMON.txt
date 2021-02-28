@@ -32,7 +32,7 @@ model{
         q[i, k] ~ dunif(0, 1)
 
         ## Hierarchical, common-within-network logIMOR 
-        logtheta[i, k]) <- phi[i, k]
+        log(theta[i, k]) <- phi[i, k]
         phi[i, k] ~ dnorm(mean.phi, prec.phi)
                          }
   
