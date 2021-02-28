@@ -97,9 +97,9 @@ model{
                          }
 
    ## Weakly-informative prior on between-trial sd
-   tau <- pow(sd, -2)                                                                  
-   sd ~ dnorm(0, 1)I(0, ) 
-   tau2 <- sd*sd  
+   tau <- pow(tau, -2)                                                                  
+   tau ~ dnorm(0, 1)I(0, ) 
+   tau2 <- tau*tau 
      }  
 
                               
