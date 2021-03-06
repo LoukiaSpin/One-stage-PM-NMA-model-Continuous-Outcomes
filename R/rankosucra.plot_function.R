@@ -14,7 +14,7 @@
 #' rankogram.sucra.plots(net = res, drug.names = drug.names)
 #'
 #' @export
-rankogram.sucra.plots <- function(net, drug.names){
+rankosucra.plot <- function(net, drug.names){
 
   SUCRA <- net$SUCRA; effectiveness <- net$effectiveness
 
