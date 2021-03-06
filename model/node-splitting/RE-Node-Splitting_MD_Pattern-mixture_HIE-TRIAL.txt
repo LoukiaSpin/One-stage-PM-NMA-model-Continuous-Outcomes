@@ -67,14 +67,6 @@ model{
                   }
     psi.phi <- pow(precd.phi, -2)
 
-    ## Obtain reference-specific effect measure (ES)
-    for(t in 1:(ref - 1)){
-      EM.ref[t] <- d[t] - d[ref]
-                         }
-
-    for(t in (ref + 1):nt){
-      EM.ref[t] <- d[t] - d[ref]
-                          }
 
     ## Obtain all possible (unique) pairwise comparisons
     for(c in 1:nt){  
@@ -84,13 +76,14 @@ model{
                         }
 
     direct ~ dnorm(0, .0001) 
-    diff <- direct - MD[pair[1], pair[2]]                                                  # calculate the difference between 'direct' and 'MD' (pair[2] vs pair[1])
+    diff <- direct - EM[pair[2], pair[1]]                                                  # calculate the difference between 'direct' and 'MD' (pair[2] vs pair[1])
     prob <- step(diff)                                                                     # calculate p-value for inconsistency factor
 
+
     ## Weakly-informative prior on between-trial standard deviation
-    prec <- pow(sd, -2)                                                                  
-    sd ~ dnorm(0, 1)I(0, ) 
-    tau2 <- sd*sd            
+    prec <- pow(tau, -2)                                                                  
+    tau ~ dnorm(0, 1)I(0, ) 
+    tau2 <- tau*tau           
     } # END OF MODEL 
 
                               

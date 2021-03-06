@@ -4,7 +4,7 @@
 \alias{barplot.KLD}
 \title{A barplot for the Kullback-Leibler divergence measure for all scenarios}
 \usage{
-\method{barplot}{KLD}(robust, outcome, title)
+\method{barplot}{KLD}(robust, compar, outcome, drug.names)
 }
 \description{
 A barplot for the Kullback-Leibler divergence measure for all scenarios

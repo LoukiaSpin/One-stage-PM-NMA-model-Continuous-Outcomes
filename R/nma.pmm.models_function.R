@@ -52,6 +52,12 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   if(measure == "MD" || measure == "SMD"|| measure == "ROM"){
 
+
+    ## Turn arm-level to contrast-level dataset
+    (pairwise <- pairwise(as.list(t), event = as.list(m), n = as.list(n), data = data, studlab = 1:ns)[, c(3:6, 8, 7, 9)])
+    colnames(pairwise) <- c("study", "t1", "t2", "m1", "m2", "n1", "n2")
+
+
     ## Continuous: arm-level, wide-format dataset
     (y0 <- data %>% dplyr::select(starts_with("y")))            # Observed mean value in each arm of every trial
     (sd0 <- data %>% dplyr::select(starts_with("sd")))          # Observed standard deviation in each arm of every trial
@@ -100,6 +106,8 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   } else {
 
+data <- data1[, -17]
+
     ## Binary: arm-level, wide-format dataset
     (r <- data %>% dplyr::select(starts_with("r")))             # Number of observed events in each arm of every trial
     (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
@@ -109,6 +117,21 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
     nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
     ns <- length(r[, 1])                                        # Total number of included trials per network
     ref <- ifelse(nt > 2, which.max(table(as.matrix(t))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
+
+
+
+    ## Turn arm-level to contrast-level dataset (uaing 'netmeta')
+    # Treatment, number of observed events, and missing outcome data
+    (pairwise1 <- pairwise(as.list(t), event = as.list(r), n = as.list(m), data = data, studlab = 1:ns)[, c(3:6, 8, 7, 9)])
+    colnames(pairwise1) <- c("study", "t1", "t2", "r1", "r2", "m1", "m2")
+
+    # Treatment, number of observed events, and number randomised
+    (pairwise2 <- pairwise(as.list(t), event = as.list(r), n = as.list(N), data = data, studlab = 1:ns)[, c(3:6, 8, 7, 9)])
+    colnames(pairwise2) <- c("study", "t1", "t2", "r1", "r2", "N1", "N2")
+
+
+    wl <- melt(pairwise2[1:3], id.vars = c("study"))
+    dcast( wl, study  ~ variable, value.var="value")
 
 
 
@@ -210,7 +233,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   if(nt > 2) {
 
-    return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tau = tau, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi))
+    return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tau = tau, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi, ref = ref))
 
   } else {
 
