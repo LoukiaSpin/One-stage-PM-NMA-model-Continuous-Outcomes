@@ -8,20 +8,43 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
   if(measure == "MD" || measure == "SMD"|| measure == "ROM"){
 
     ## Continuous: arm-level, wide-format dataset
-    (y0 <- data %>% dplyr::select(starts_with("y")))            # Observed mean value in each arm of every trial
-    (sd0 <- data %>% dplyr::select(starts_with("sd")))          # Observed standard deviation in each arm of every trial
-    (mod <- data %>% dplyr::select(starts_with("m")))           # Number of missing participants in each arm of every trial
-    (c <- data %>% dplyr::select(starts_with("c")))             # Number of completers in each arm of every trial
-    (se0 <- sd0/sqrt(c))                                        # Observed standard error in each arm of every trial
-    (N <- m + c)                                                # Number of randomised participants in each arm of every trial
-    (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
-    na.. <- apply(t, 1, function(x) length(which(!is.na(x))))   # Number of interventions investigated in every trial per network
-    nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
-    ns <- length(y0[, 1])                                       # Total number of included trials per network
-    ref <- ifelse(nt > 2, which.max(table(as.matrix(t))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
+    (y.obs <- data %>% dplyr::select(starts_with("y")))             # Observed mean value in each arm of every trial
+    (sd.obs <- data %>% dplyr::select(starts_with("sd")))           # Observed standard deviation in each arm of every trial
+    (mod0 <- data %>% dplyr::select(starts_with("m")))              # Number of missing participants in each arm of every trial
+    (c <- data %>% dplyr::select(starts_with("c")))                 # Number of completers in each arm of every trial
+    (se.obs <- sd.obs/sqrt(c))                                      # Observed standard error in each arm of every trial
+    (rand <- mod0 + c)                                               # Number of randomised participants in each arm of every trial
+    (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
+    na.. <- apply(treat, 1, function(x) length(which(!is.na(x))))   # Number of interventions investigated in every trial per network
+    nt <- length(table(as.matrix(treat)))                           # Total number of interventions per network
+    ns <- length(y.obs[, 1])                                        # Total number of included trials per network
+    ref <- ifelse(nt > 2, which.max(table(as.matrix(treat))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
     # Trial-specific observed pooled standard deviation
-    (sigma <- sqrt(apply((sd0^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na..)))
+    (sigma <- sqrt(apply((sd.obs^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na..)))
 
+
+    ## Order by 'id of t1' < 'id of t1'
+    y0 <- se0 <- mod <- N <- t <- t0 <- treat
+    for(i in 1:ns){
+
+      t0[i, ] <- order(treat[i, ], na.last = T)
+      y0[i, ] <- y.obs[i, order(t0[i, ], na.last = T)]
+      se0[i, ] <- se.obs[i, order(t0[i, ], na.last = T)]
+      mod[i, ] <- mod0[i, order(t0[i, ], na.last = T)]
+      N[i, ] <- rand[i, order(t0[i, ], na.last = T)]
+      t[i, ] <- sort(treat[i, ], na.last = T)
+    }
+
+
+    if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & !is.null(dim(mean.misspar))) {
+
+      mean.misspar <- as.vector(mean.misspar)
+
+    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))){
+
+      mean.misspar <- rep(mean.misspar, 2)
+
+    }
 
 
     ## Information for the prior distribution on the missingness parameter (IMDOM or logIMROM)
@@ -32,14 +55,15 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
 
 
     ## Rename columns to agree with gemtc
-    names(y) <- paste0("y..",1:length(y[1, ]),".")
-    names(se) <- paste0("se..",1:length(se0[1, ]),".")
-    names(n) <- paste0("n..",1:length(N[1, ]),".")
+    names(y0) <- paste0("y..",1:length(y0[1, ]),".")
+    names(se0) <- paste0("se..",1:length(se0[1, ]),".")
+    names(N) <- paste0("n..",1:length(N[1, ]),".")
     names(t) <- paste0("t..",1:length(t[1, ]),".")
 
 
     ## Convert one-study-per-row data to one-arm-per-row as required in GeMTC
-    transform <- mtc.data.studyrow(cbind(t, y, se, n, na..), armVars = c('treatment'= 't', 'mean'='y', 'std.error'='se', 'sampleSize'='n'), nArmsVar='na')
+    transform <- mtc.data.studyrow(cbind(t, y0, se0, N, na..), armVars = c('treatment'= 't', 'mean'='y', 'std.error'='se', 'sampleSize'='n'), nArmsVar='na')
+    transform$treatment <- as.numeric(transform$treatment)
 
 
     ## Detect the nodes to split
@@ -111,29 +135,43 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
 
 
     ## Binary: arm-level, wide-format dataset
-    (r <- data %>% dplyr::select(starts_with("r")))             # Number of observed events in each arm of every trial
-    (mod <- data %>% dplyr::select(starts_with("m")))           # Number of missing participants in each arm of every trial
-    (N <- data %>% dplyr::select(starts_with("n")))             # Number randomised participants in each arm of every trial
-    (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
-    na.. <- apply(t, 1, function(x) length(which(!is.na(x))))   # Number of interventions investigated in every trial per network
-    nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
-    ns <- length(r[, 1])                                        # Total number of included trials per network
-    ref <- ifelse(nt > 2, which.max(table(as.matrix(t))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
+    (event <- data %>% dplyr::select(starts_with("r")))             # Number of observed events in each arm of every trial
+    (mod0 <- data %>% dplyr::select(starts_with("m")))              # Number of missing participants in each arm of every trial
+    (rand <- data %>% dplyr::select(starts_with("n")))              # Number randomised participants in each arm of every trial
+    (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
+    na.. <- apply(treat, 1, function(x) length(which(!is.na(x))))   # Number of interventions investigated in every trial per network
+    nt <- length(table(as.matrix(treat)))                           # Total number of interventions per network
+    ns <- length(event[, 1])                                        # Total number of included trials per network
+    ref <- ifelse(nt > 2, which.max(table(as.matrix(treat))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
 
+
+
+    ## Order by 'id of t1' < 'id of t1'
+    r <- mod <- N <- t <- t0 <- treat
+    for(i in 1:ns){
+
+      t0[i, ] <- order(treat[i, ], na.last = T)
+      r[i, ] <- event[i, order(t0[i, ], na.last = T)]
+      mod[i, ] <- mod0[i, order(t0[i, ], na.last = T)]
+      N[i, ] <- rand[i, order(t0[i, ], na.last = T)]
+      t[i, ] <- sort(treat[i, ], na.last = T)
+    }
 
 
     ## Information for the prior distribution on log IMOR
-    if(assumption == "HIE-ARM" || assumption == "IDE-ARM" ) {
+    if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & !is.null(dim(mean.misspar))) {
 
-      mean.misspar[1] <- ifelse(mean.misspar[1] == 0 , 0.0001, mean.misspar[1])
+      mean.misspar <- as.vector(mean.misspar)
+      mean.misspar[1] <- ifelse(mean.misspar[1] == 0, 0.0001, mean.misspar[1])
       mean.misspar[2] <- ifelse(mean.misspar[2] == 0, 0.0001, mean.misspar[2])
 
-    } else {
+    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))){
 
-      mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
+      mean.misspar <- rep(ifelse(mean.misspar == 0, 0.0001, mean.misspar), 2)
 
     }
-    mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
+
+
     M <- ifelse(!is.na(r), mean.misspar, NA)   # Vector of the mean value of the normal distribution of the informative missingness parameter as the number of arms in trial i (independent structure)
     prec.misspar <- 1/var.misspar
     psi.misspar <- sqrt(var.misspar)           # the lower bound of the uniform prior distribution for the prior standard deviation of the missingness parameter (hierarchical structure)
@@ -148,6 +186,7 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
 
     ## Convert one-study-per-row data to one-arm-per-row as required in GeMTC
     transform <- mtc.data.studyrow(cbind(t, r, N, na..), armVars = c('treatment'= 't', 'response'='r', 'sampleSize'='n'), nArmsVar='na')
+    transform$treatment <- as.numeric(transform$treatment)
 
 
     ## Detect the nodes to split

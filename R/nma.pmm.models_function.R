@@ -58,7 +58,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
     (sd.obs <- data %>% dplyr::select(starts_with("sd")))           # Observed standard deviation in each arm of every trial
     (mod <- data %>% dplyr::select(starts_with("m")))               # Number of missing participants in each arm of every trial
     (c <- data %>% dplyr::select(starts_with("c")))                 # Number of completers in each arm of every trial
-    (se0 <- sd.obs/sqrt(c))                                         # Observed standard error in each arm of every trial
+    (se.obs <- sd.obs/sqrt(c))                                      # Observed standard error in each arm of every trial
     (rand <- mod + c)                                               # Number of randomised participants in each arm of every trial
     (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
     na <- apply(treat, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
@@ -70,17 +70,27 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
 
     ## Order by 'id of t1' < 'id of t1'
-    y0 <- se0 <- m <- N <- t0 <- treat
+    y0 <- se0 <- m <- N <- t <- t0 <- treat
     for(i in 1:ns){
 
       t0[i, ] <- order(treat[i, ], na.last = T)
       y0[i, ] <- y.obs[i, order(t0[i, ], na.last = T)]
-      sd0[i, ] <- sd.obs[i, order(t0[i, ], na.last = T)]
+      se0[i, ] <- se.obs[i, order(t0[i, ], na.last = T)]
       m[i, ] <- mod[i, order(t0[i, ], na.last = T)]
       N[i, ] <- rand[i, order(t0[i, ], na.last = T)]
       t[i, ] <- sort(treat[i, ], na.last = T)
     }
 
+
+    if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & !is.null(dim(mean.misspar))) {
+
+      mean.misspar <- as.vector(mean.misspar)
+
+    } else {
+
+      mean.misspar <- rep(mean.misspar, 2)
+
+    }
 
 
     ## Information for the prior distribution on the missingness parameter (IMDOM or logIMROM)
@@ -140,19 +150,20 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
     }
 
 
-
     ## Information for the prior distribution on log IMOR
-    if(assumption == "HIE-ARM" || assumption == "IDE-ARM" ) {
+    if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & !is.null(dim(mean.misspar))) {
 
-      mean.misspar[1] <- ifelse(mean.misspar[1] == 0 , 0.0001, mean.misspar[1])
+      mean.misspar <- as.vector(mean.misspar)
+      mean.misspar[1] <- ifelse(mean.misspar[1] == 0, 0.0001, mean.misspar[1])
       mean.misspar[2] <- ifelse(mean.misspar[2] == 0, 0.0001, mean.misspar[2])
 
     } else {
 
-      mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
+      mean.misspar <- rep(ifelse(mean.misspar == 0, 0.0001, mean.misspar), 2)
 
     }
-    mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
+
+
     M <- ifelse(!is.na(r), mean.misspar, NA)   # Vector of the mean value of the normal distribution of the informative missingness parameter as the number of arms in trial i (independent structure)
     prec.misspar <- 1/var.misspar
     psi.misspar <- sqrt(var.misspar)           # the lower bound of the uniform prior distribution for the prior standard deviation of the missingness parameter (hierarchical structure)
