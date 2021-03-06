@@ -53,25 +53,33 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
   if(measure == "MD" || measure == "SMD"|| measure == "ROM"){
 
 
-    ## Turn arm-level to contrast-level dataset
-    (pairwise <- pairwise(as.list(t), event = as.list(m), n = as.list(n), data = data, studlab = 1:ns)[, c(3:6, 8, 7, 9)])
-    colnames(pairwise) <- c("study", "t1", "t2", "m1", "m2", "n1", "n2")
-
-
     ## Continuous: arm-level, wide-format dataset
-    (y0 <- data %>% dplyr::select(starts_with("y")))            # Observed mean value in each arm of every trial
-    (sd0 <- data %>% dplyr::select(starts_with("sd")))          # Observed standard deviation in each arm of every trial
-    (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
-    (c <- data %>% dplyr::select(starts_with("c")))             # Number of completers in each arm of every trial
-    (se0 <- sd0/sqrt(c))                                        # Observed standard error in each arm of every trial
-    (N <- m + c)                                                # Number of randomised participants in each arm of every trial
-    (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
-    na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
-    nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
-    ns <- length(y0[, 1])                                       # Total number of included trials per network
-    ref <- ifelse(nt > 2, which.max(table(as.matrix(t))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
+    (y.obs <- data %>% dplyr::select(starts_with("y")))             # Observed mean value in each arm of every trial
+    (sd.obs <- data %>% dplyr::select(starts_with("sd")))           # Observed standard deviation in each arm of every trial
+    (mod <- data %>% dplyr::select(starts_with("m")))               # Number of missing participants in each arm of every trial
+    (c <- data %>% dplyr::select(starts_with("c")))                 # Number of completers in each arm of every trial
+    (se0 <- sd.obs/sqrt(c))                                         # Observed standard error in each arm of every trial
+    (rand <- mod + c)                                               # Number of randomised participants in each arm of every trial
+    (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
+    na <- apply(treat, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
+    nt <- length(table(as.matrix(treat)))                           # Total number of interventions per network
+    ns <- length(y.obs[, 1])                                        # Total number of included trials per network
+    ref <- ifelse(nt > 2, which.max(table(as.matrix(treat))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
     # Trial-specific observed pooled standard deviation
-    (sigma <- sqrt(apply((sd0^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na)))
+    (sigma <- sqrt(apply((sd.obs^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na)))
+
+
+    ## Order by 'id of t1' < 'id of t1'
+    y0 <- se0 <- m <- N <- t0 <- treat
+    for(i in 1:ns){
+
+      t0[i, ] <- order(treat[i, ], na.last = T)
+      y0[i, ] <- y.obs[i, order(t0[i, ], na.last = T)]
+      sd0[i, ] <- sd.obs[i, order(t0[i, ], na.last = T)]
+      m[i, ] <- mod[i, order(t0[i, ], na.last = T)]
+      N[i, ] <- rand[i, order(t0[i, ], na.last = T)]
+      t[i, ] <- sort(treat[i, ], na.last = T)
+    }
 
 
 
@@ -106,32 +114,30 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   } else {
 
-data <- data1[, -17]
+
 
     ## Binary: arm-level, wide-format dataset
-    (r <- data %>% dplyr::select(starts_with("r")))             # Number of observed events in each arm of every trial
-    (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
-    (N <- data %>% dplyr::select(starts_with("n")))             # Number randomised participants in each arm of every trial
-    (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
-    na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
-    nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
-    ns <- length(r[, 1])                                        # Total number of included trials per network
-    ref <- ifelse(nt > 2, which.max(table(as.matrix(t))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
+    (event <- data %>% dplyr::select(starts_with("r")))             # Number of observed events in each arm of every trial
+    (mod <- data %>% dplyr::select(starts_with("m")))               # Number of missing participants in each arm of every trial
+    (rand <- data %>% dplyr::select(starts_with("n")))              # Number randomised participants in each arm of every trial
+    (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
+    na <- apply(treat, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
+    nt <- length(table(as.matrix(treat)))                           # Total number of interventions per network
+    ns <- length(event[, 1])                                        # Total number of included trials per network
+    ref <- ifelse(nt > 2, which.max(table(as.matrix(treat))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
 
 
 
-    ## Turn arm-level to contrast-level dataset (uaing 'netmeta')
-    # Treatment, number of observed events, and missing outcome data
-    (pairwise1 <- pairwise(as.list(t), event = as.list(r), n = as.list(m), data = data, studlab = 1:ns)[, c(3:6, 8, 7, 9)])
-    colnames(pairwise1) <- c("study", "t1", "t2", "r1", "r2", "m1", "m2")
+    ## Order by 'id of t1' < 'id of t1'
+    r <- m <- N <- t <- t0 <- treat
+    for(i in 1:ns){
 
-    # Treatment, number of observed events, and number randomised
-    (pairwise2 <- pairwise(as.list(t), event = as.list(r), n = as.list(N), data = data, studlab = 1:ns)[, c(3:6, 8, 7, 9)])
-    colnames(pairwise2) <- c("study", "t1", "t2", "r1", "r2", "N1", "N2")
-
-
-    wl <- melt(pairwise2[1:3], id.vars = c("study"))
-    dcast( wl, study  ~ variable, value.var="value")
+      t0[i, ] <- order(treat[i, ], na.last = T)
+      r[i, ] <- event[i, order(t0[i, ], na.last = T)]
+      m[i, ] <- mod[i, order(t0[i, ], na.last = T)]
+      N[i, ] <- rand[i, order(t0[i, ], na.last = T)]
+      t[i, ] <- sort(treat[i, ], na.last = T)
+    }
 
 
 
