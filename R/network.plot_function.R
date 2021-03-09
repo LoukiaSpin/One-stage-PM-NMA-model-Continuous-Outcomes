@@ -53,10 +53,14 @@ netplot <- function(data, drug.names, show.bias, ...){
 
   ## one row per study arm
   transform0 <- mtc.data.studyrow(cbind(t, m, n, na..), armVars = c('treatment'= 't', 'response'='m', 'sampleSize'='n'), nArmsVar='na')
-  (transform0$treatment1 <- as.numeric(as.factor(transform0$treatment)))
-  for(i in 1:length(unique(transform0$study))){
+  (transform0$treatment <- as.numeric(as.character(transform0$treatment)))
+  #for(i in 1:length(unique(transform0$study))) {
+  #  transform0[transform0$treatment == i, 2] <- drug.names[i]
+  #}
+  for(i in sort(unique(transform0$treatment))) {
     transform0[transform0$treatment == i, 2] <- drug.names[i]
   }
+
 
 
   ## Prepare data to use BUGSnet
@@ -96,7 +100,7 @@ netplot <- function(data, drug.names, show.bias, ...){
 
   } else {
 
-    nma.networkplot(study, treatment1, data = transform0, trtname = drug.names, alphabetic = F, title = "", text.cex = 1.7, multi.show = T, ...)
+    nma.networkplot(study, treatment, data = transform0, trtname = drug.names, alphabetic = F, title = "", text.cex = 1.7, multi.show = T, ...)
 
   }
 
