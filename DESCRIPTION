@@ -32,6 +32,7 @@ Imports:
     netmeta,
     gemtc,
     BUGSnet,
-    pcnetmeta
+    pcnetmeta,
+    ggthemes
 SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)
 RoxygenNote: 7.1.1

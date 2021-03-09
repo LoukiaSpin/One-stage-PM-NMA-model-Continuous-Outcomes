@@ -3,11 +3,11 @@
 #' @export
 barplot.KLD <- function(robust, compar, outcome, drug.names){
 
+  compar <- 1
+
   KLD <- robust$KLD[compar, ]
 
   comparisons <- matrix(combn(drug.names, 2), ncol = 2)
-
-  require(ggplot2); require("ggthemes")
 
 
   if(outcome == "binary"){
@@ -40,6 +40,8 @@ barplot.KLD <- function(robust, compar, outcome, drug.names){
   dataset.new <- data.frame(KLD[-13], paste0(scenarios[-13, 1], ",", scenarios[-13, 2]), plausibility[-13], distance[-13])
   colnames(dataset.new) <- c("KLD", "scenarios", "plausibility", "distance")
 
+
+  ## In each facet, x-axis is sorted by KLD in descending order
   barplot <- ggplot(dataset.new, aes(x = reorder(scenarios, -KLD), y = KLD, fill = distance)) +
     geom_bar(stat = "identity", width = 0.5) +
     scale_fill_manual(breaks = c("more distant", "less distant", "no distance"), values = c("red", "orange", "green4")) +
