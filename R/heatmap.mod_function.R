@@ -1,4 +1,4 @@
-#'
+#' Heatmap to illustrate the proportion of MOD in each intervention of every trial
 #'
 #' @export
 heatmap.mod <- function(data, trial.names, drug.names) {

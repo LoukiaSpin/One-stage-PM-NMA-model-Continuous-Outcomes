@@ -34,21 +34,48 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   if(measure == "MD" || measure == "SMD"|| measure == "ROM"){
 
-    ## Continuous: arm-level, wide-format dataset
-    (y0 <- data %>% dplyr::select(starts_with("y")))            # Observed mean value in each arm of every trial
-    (sd0 <- data %>% dplyr::select(starts_with("sd")))          # Observed standard deviation in each arm of every trial
-    (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
-    (c <- data %>% dplyr::select(starts_with("c")))             # Number completers in each arm of every trial
-    (se0 <- sd0/sqrt(c))                                        # Observed standard error in each arm of every trial
-    (N <- m + c)                                                # Number of randomised participants in each arm of every trial
-    (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
-    na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
-    nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
-    ns <- length(y0[, 1])                                       # Total number of included trials per network
-    ref <- which.max(table(as.matrix(t)))                       # Reference intervention per network: the most frequently appeared intervention in the network
-    # Trial-specific observed pooled standard deviation
-    (sigma <- sqrt(apply((sd0^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na)))
 
+    ## Continuous: arm-level, wide-format dataset
+    (y.obs <- data %>% dplyr::select(starts_with("y")))             # Observed mean value in each arm of every trial
+    (sd.obs <- data %>% dplyr::select(starts_with("sd")))           # Observed standard deviation in each arm of every trial
+    (mod <- data %>% dplyr::select(starts_with("m")))               # Number of missing participants in each arm of every trial
+    (c <- data %>% dplyr::select(starts_with("c")))                 # Number of completers in each arm of every trial
+    (se.obs <- sd.obs/sqrt(c))                                      # Observed standard error in each arm of every trial
+    (rand <- mod + c)                                               # Number of randomised participants in each arm of every trial
+    (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
+    na <- apply(treat, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
+    nt <- length(table(as.matrix(treat)))                           # Total number of interventions per network
+    ns <- length(y.obs[, 1])                                        # Total number of included trials per network
+    ref <- ifelse(nt > 2, which.max(table(as.matrix(treat))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
+    # Trial-specific observed pooled standard deviation
+    (sigma <- sqrt(apply((sd.obs^2)*(c - 1), 1, sum, na.rm = T)/(apply(c, 1, sum, na.rm = T) - na)))
+
+
+    ## Order by 'id of t1' < 'id of t1'
+    y0 <- se0 <- m <- N <- t <- t0 <- treat
+    for(i in 1:ns){
+
+      t0[i, ] <- order(treat[i, ], na.last = T)
+      y0[i, ] <- y.obs[i, order(t0[i, ], na.last = T)]
+      se0[i, ] <- se.obs[i, order(t0[i, ], na.last = T)]
+      m[i, ] <- mod[i, order(t0[i, ], na.last = T)]
+      N[i, ] <- rand[i, order(t0[i, ], na.last = T)]
+      t[i, ] <- sort(treat[i, ], na.last = T)
+    }
+
+
+    if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & !is.null(dim(mean.misspar))) {
+
+      mean.misspar <- as.vector(mean.misspar)
+
+    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))) {
+
+      mean.misspar <- rep(mean.misspar, 2)
+
+    } else {
+
+      mean.misspar <- mean.misspar
+    }
 
 
     ## Information for the prior distribution on the missingness parameter (IMDOM or logIMROM)
@@ -82,20 +109,49 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   } else {
 
-    ## Binary: arm-level, wide-format dataset
-    (r <- data %>% dplyr::select(starts_with("r")))             # Number of observed events in each arm of every trial
-    (m <- data %>% dplyr::select(starts_with("m")))             # Number of missing participants in each arm of every trial
-    (N <- data %>% dplyr::select(starts_with("n")))             # Number randomised participants in each arm of every trial
-    (t <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
-    na <- apply(t, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
-    nt <- length(table(as.matrix(t)))                           # Total number of interventions per network
-    ns <- length(r[, 1])                                        # Total number of included trials per network
-    ref <- which.max(table(as.matrix(t)))                       # Reference intervention per network: the most frequently appeared intervention in the network
 
+
+    ## Binary: arm-level, wide-format dataset
+    (event <- data %>% dplyr::select(starts_with("r")))             # Number of observed events in each arm of every trial
+    (mod <- data %>% dplyr::select(starts_with("m")))               # Number of missing participants in each arm of every trial
+    (rand <- data %>% dplyr::select(starts_with("n")))              # Number randomised participants in each arm of every trial
+    (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
+    na <- apply(treat, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
+    nt <- length(table(as.matrix(treat)))                           # Total number of interventions per network
+    ns <- length(event[, 1])                                        # Total number of included trials per network
+    ref <- ifelse(nt > 2, which.max(table(as.matrix(treat))), 1)    # Reference intervention per network: the most frequently appeared intervention in the network
+
+
+
+    ## Order by 'id of t1' < 'id of t1'
+    r <- m <- N <- t <- t0 <- treat
+    for(i in 1:ns){
+
+      t0[i, ] <- order(treat[i, ], na.last = T)
+      r[i, ] <- event[i, order(t0[i, ], na.last = T)]
+      m[i, ] <- mod[i, order(t0[i, ], na.last = T)]
+      N[i, ] <- rand[i, order(t0[i, ], na.last = T)]
+      t[i, ] <- sort(treat[i, ], na.last = T)
+    }
 
 
     ## Information for the prior distribution on log IMOR
-    mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
+    if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & !is.null(dim(mean.misspar))) {
+
+      mean.misspar <- as.vector(mean.misspar)
+      mean.misspar[1] <- ifelse(mean.misspar[1] == 0, 0.0001, mean.misspar[1])
+      mean.misspar[2] <- ifelse(mean.misspar[2] == 0, 0.0001, mean.misspar[2])
+
+    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))) {
+
+      mean.misspar <- rep(ifelse(mean.misspar == 0, 0.0001, mean.misspar), 2)
+
+    } else if(assumption != "HIE-ARM" || assumption != "IDE-ARM" ) {
+
+      mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
+    }
+
+
     M <- ifelse(!is.na(r), mean.misspar, NA)   # Vector of the mean value of the normal distribution of the informative missingness parameter as the number of arms in trial i (independent structure)
     prec.misspar <- 1/var.misspar
     psi.misspar <- sqrt(var.misspar)           # the lower bound of the uniform prior distribution for the prior standard deviation of the missingness parameter (hierarchical structure)
@@ -122,11 +178,11 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
   ## Condition for the hierarchical structure of the missingness parameter
   if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
 
-    param.jags <- c("delta", "EM", "tau", "SUCRA", "order", "mean.phi", "sd.phi", "effectiveness")
+    param.jags <- c("delta", "EM", "EM.ref", "EM.pred", "pred.ref", "tau", "SUCRA", "mean.phi", "effectiveness")
 
   } else {
 
-    param.jags <- c("delta", "EM", "tau", "SUCRA", "phi", "effectiveness")
+    param.jags <- c("delta", "EM", "EM.ref", "EM.pred", "pred.ref", "tau", "SUCRA", "phi", "effectiveness")
 
   }
 
@@ -140,11 +196,13 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   ## Obtain the posterior distribution of the necessary model paramters
   EM <- jagsfit$BUGSoutput$summary[1:(nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  tau <- jagsfit$BUGSoutput$summary["tau", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  EM.pred <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + 1):(2*nt*(nt - 1)*0.5), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  EM.ref <- jagsfit$BUGSoutput$summary[paste0("EM.ref[", seq(1:nt)[-ref], "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   SUCRA <- jagsfit$BUGSoutput$summary[paste0("SUCRA[", seq(1:nt), "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  delta <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1)), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-  effectiveness <- jagsfit$BUGSoutput$summary[(nt*(nt - 1)*0.5 + nt + sum(na - 1) + 1):(nt*(nt - 1)*0.5 + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
-
+  delta <- jagsfit$BUGSoutput$summary[(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + 1):(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1)), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  effectiveness <- jagsfit$BUGSoutput$summary[(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1) + 1):(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  pred.ref <- jagsfit$BUGSoutput$summary[paste0("pred.ref[", seq(1:nt)[-ref], "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  tau <- jagsfit$BUGSoutput$summary["tau", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
 
 
   ## Conditions to obtain the posterior distribution of the missingness parameter
@@ -197,11 +255,11 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   if(assumption == "IDE-COMMON" || assumption == "HIE-COMMON"){
 
-    R.hat.max <- c(max(EM[, 5]), max(tau[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), phi[5])
+    R.hat.max <- c(max(EM[, 5]), max(EM.pred[, 5]), max(delta[, 5]), max(tau[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), phi[5])
 
   } else {
 
-    R.hat.max <- c(max(EM[, 5]), max(tau[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), max(phi[, 5]))
+    R.hat.max <- c(max(EM[, 5]), max(EM.pred[, 5]), max(delta[, 5]), max(tau[5]), max(SUCRA[, 5]), max(effectiveness[, 5]), max(phi[, 5]))
 
   }
 
@@ -214,7 +272,7 @@ mcmc.diagnostics <- function(par, data, measure, assumption, mean.misspar, var.m
 
   # Check convergence for all monitored parameters using the Rhat
   convergence <- data.frame(R.hat.max, conv)
-  rownames(convergence) <- c("EM", "tau", "SUCRA", "effectiveness", "phi")
+  rownames(convergence) <- c("EM", "Pred", "delta", "tau", "SUCRA", "effectiveness", "phi")
   colnames(convergence) <- c("R.hat max", "convergence status")
 
   return(list(convergence = convergence))

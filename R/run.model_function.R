@@ -86,10 +86,13 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
       mean.misspar <- as.vector(mean.misspar)
 
-    } else {
+    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))) {
 
       mean.misspar <- rep(mean.misspar, 2)
 
+    } else {
+
+      mean.misspar <- mean.misspar
     }
 
 
@@ -157,10 +160,13 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
       mean.misspar[1] <- ifelse(mean.misspar[1] == 0, 0.0001, mean.misspar[1])
       mean.misspar[2] <- ifelse(mean.misspar[2] == 0, 0.0001, mean.misspar[2])
 
-    } else {
+    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))) {
 
       mean.misspar <- rep(ifelse(mean.misspar == 0, 0.0001, mean.misspar), 2)
 
+    } else if(assumption != "HIE-ARM" || assumption != "IDE-ARM" ) {
+
+      mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
     }
 
 

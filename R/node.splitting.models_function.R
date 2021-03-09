@@ -4,7 +4,6 @@
 run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, n.chains, n.iter, n.burnin, n.thin){
 
 
-
   if(measure == "MD" || measure == "SMD"|| measure == "ROM"){
 
     ## Continuous: arm-level, wide-format dataset
@@ -40,10 +39,13 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
 
       mean.misspar <- as.vector(mean.misspar)
 
-    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))){
+    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))) {
 
       mean.misspar <- rep(mean.misspar, 2)
 
+    } else {
+
+      mean.misspar <- mean.misspar
     }
 
 
@@ -71,64 +73,78 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
     colnames(splitting) <- NULL
     rownames(splitting) <- NULL
 
+    if(dim(splitting)[1] < 1) {
+
+      stop("There is no loop to evaluate", call. = FALSE)
+
+      suppressMessages({
+        message("Called from: netmodr::run.nodesplit")
+
+      })
+
+    } else {
+
+      pair <- apply(as.matrix(splitting), 2, as.numeric)
+
+
+      ## Define necessary model components
+      jagsfit <- data.jag <- checkPair <- bi <- si <- m <- list()
+
+
+      ## Parameters to save
+      param.jags <- c("EM", "direct", "diff", "tau")
+
+
+      for(i in 1:length(pair[, 1])){
+
+
+        ## Calculate split (1 if node to split is present) and b (baseline position)
+        checkPair[[i]] <- PairXY(as.matrix(t), pair[i, ])
+
+        ## Build vector bi[i] with baseline treatment: t[i, b[i]]
+        bi[[i]] <- Basetreat(as.matrix(t), checkPair[[i]][,"b"])
+
+        ## Indexes to sweep non-baseline arms only
+        m[[i]] <- NonbaseSweep(checkPair[[i]], na..)
+
+        ## Build matrix si[i,k] with non-baseline treatments: t[i, m[i,k]]
+        si[[i]] <- Sweeptreat(as.matrix(t), m[[i]])
+
+
+        # Under the Independent structure with or without SMD as effect measure
+        if (measure == "SMD" & assumption != "IND-CORR") {
+
+          data.jag[[i]] <- list("y.o" = y0, "se.o" = se0, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "sigma" = sigma, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar,
+                                "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
+
+        } else if (measure == "SMD" & assumption == "IND-CORR"){
+
+          data.jag[[i]] <- list("y.o" = y0, "se.o" = se0, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "sigma" = sigma, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar,
+                                "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
+
+        } else if (measure != "SMD" & assumption == "IND-CORR") {
+
+          data.jag[[i]] <- list("y.o" = y0, "se.o" = se0, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar,
+                                "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
+
+        } else {
+
+          data.jag[[i]] <- list("y.o" = y0, "se.o" = se0, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar,
+                                "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
+
+        } # Stop if-statement for 'measure' and 'assumption'
+
+
+        ## Run the Bayesian analysis
+        jagsfit[[i]] <- jags(data = data.jag[[i]], parameters.to.save = param.jags, model.file = paste0("./model/node-splitting/RE-Node-Splitting_", measure, "_Pattern-mixture_", assumption, ".txt"),
+                             n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = T)
+
+      }  # Stop loop for 'pair'
+
+
+    }
 
     ## Define node to split: AB=(1,2)
-    pair <- apply(as.matrix(splitting), 2, as.numeric)
-
-
-    ## Define necessary model components
-    jagsfit <- data.jag <- checkPair <- bi <- si <- m <- list()
-
-
-    ## Parameters to save
-    param.jags <- c("EM", "direct", "diff", "tau")
-
-
-    for(i in 1:length(pair[, 1])){
-
-      ## Calculate split (1 if node to split is present) and b (baseline position)
-      checkPair[[i]] <- PairXY(as.matrix(t), pair[i, ])
-
-      ## Build vector bi[i] with baseline treatment: t[i, b[i]]
-      bi[[i]] <- Basetreat(as.matrix(t), checkPair[[i]][,"b"])
-
-      ## Indexes to sweep non-baseline arms only
-      m[[i]] <- NonbaseSweep(checkPair[[i]], na..)
-
-      ## Build matrix si[i,k] with non-baseline treatments: t[i, m[i,k]]
-      si[[i]] <- Sweeptreat(as.matrix(t), m[[i]])
-
-
-      # Under the Independent structure with or without SMD as effect measure
-      if (measure == "SMD" & assumption != "IND-CORR") {
-
-        data.jag[[i]] <- list("y.o" = y0, "se.o" = se0, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "sigma" = sigma, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar,
-                              "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
-
-      } else if (measure == "SMD" & assumption == "IND-CORR"){
-
-        data.jag[[i]] <- list("y.o" = y0, "se.o" = se0, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "sigma" = sigma, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar,
-                              "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
-
-      } else if (measure != "SMD" & assumption == "IND-CORR") {
-
-        data.jag[[i]] <- list("y.o" = y0, "se.o" = se0, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar,
-                              "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
-
-      } else {
-
-        data.jag[[i]] <- list("y.o" = y0, "se.o" = se0, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar,
-                              "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
-
-      } # For loop fof
-
-
-      ## Run the Bayesian analysis
-      jagsfit[[i]] <- jags(data = data.jag[[i]], parameters.to.save = param.jags, model.file = paste0("./model/node-splitting/RE-Node-Splitting_", measure, "_Pattern-mixture_", assumption, ".txt"),
-                           n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = T)
-
-
-    }  ## Stop if-statement for 'measure' and 'assumption'
 
 
   } else {
@@ -165,10 +181,13 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
       mean.misspar[1] <- ifelse(mean.misspar[1] == 0, 0.0001, mean.misspar[1])
       mean.misspar[2] <- ifelse(mean.misspar[2] == 0, 0.0001, mean.misspar[2])
 
-    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))){
+    } else if((assumption == "HIE-ARM" || assumption == "IDE-ARM" ) & is.null(dim(mean.misspar))) {
 
       mean.misspar <- rep(ifelse(mean.misspar == 0, 0.0001, mean.misspar), 2)
 
+    } else if(assumption != "HIE-ARM" || assumption != "IDE-ARM" ) {
+
+      mean.misspar <- ifelse(mean.misspar == 0, 0.0001, mean.misspar)
     }
 
 
@@ -194,54 +213,65 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
     colnames(splitting) <- NULL
     rownames(splitting) <- NULL
 
+    if(dim(splitting)[1] < 1) {
 
-    ## Define node to split: AB=(1,2)
-    pair <- apply(as.matrix(splitting), 2, as.numeric)
+      stop("There is no loop to evaluate", call. = FALSE)
 
+      suppressMessages({
+        message("Called from: netmodr::run.nodesplit")
+      })
 
-    ## Parameters to save
-    param.jags <- c("EM", "direct", "diff", "tau")
+    } else {
 
-
-    ## Define necessary model components
-    jagsfit <- data.jag <- checkPair <- bi <- si <- m <- list()
-
-
-    for(i in 1:length(pair[, 1])){
-
-      ## Calculate split (1 if node to split is present) and b (baseline position)
-      checkPair[[i]] <- PairXY(as.matrix(t), pair[i, ])
-
-      ## Build vector bi[i] with baseline treatment: t[i, b[i]]
-      bi[[i]] <- Basetreat(as.matrix(t), checkPair[[i]][,"b"])
-
-      ## Indexes to sweep non-baseline arms only
-      m[[i]] <- NonbaseSweep(checkPair[[i]], na..)
-
-      ## Build matrix si[i,k] with non-baseline treatments: t[i, m[i,k]]
-      si[[i]] <- Sweeptreat(as.matrix(t), m[[i]])
+      ## Define node to split: AB=(1,2)
+      pair <- apply(as.matrix(splitting), 2, as.numeric)
 
 
-      ## Condition for the Independent structure
-      if (assumption != "IND-CORR") {
-
-        data.jag[[i]] <- list("r" = r, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar,
-                              "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
-
-      } else {
-
-        data.jag[[i]] <- list("r" = r, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar,
-                              "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
-
-      } # Stop if-statement for 'assumption'
+      ## Parameters to save
+      param.jags <- c("EM", "direct", "diff", "tau")
 
 
-      ## Run the Bayesian analysis
-      jagsfit[[i]] <- jags(data = data.jag[[i]], parameters.to.save = param.jags, model.file = paste0("./model/node-splitting/RE-Node-Splitting_", measure, "_Pattern-mixture_", assumption, ".txt"),
-                           n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = T)
+      ## Define necessary model components
+      jagsfit <- data.jag <- checkPair <- bi <- si <- m <- list()
 
-    } # Stop loop for 'pair'
 
+      for(i in 1:length(pair[, 1])){
+
+        ## Calculate split (1 if node to split is present) and b (baseline position)
+        checkPair[[i]] <- PairXY(as.matrix(t), pair[i, ])
+
+        ## Build vector bi[i] with baseline treatment: t[i, b[i]]
+        bi[[i]] <- Basetreat(as.matrix(t), checkPair[[i]][,"b"])
+
+        ## Indexes to sweep non-baseline arms only
+        m[[i]] <- NonbaseSweep(checkPair[[i]], na..)
+
+        ## Build matrix si[i,k] with non-baseline treatments: t[i, m[i,k]]
+        si[[i]] <- Sweeptreat(as.matrix(t), m[[i]])
+
+
+        ## Condition for the Independent structure
+        if (assumption != "IND-CORR") {
+
+          data.jag[[i]] <- list("r" = r, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "meand.phi" = mean.misspar, "precd.phi" = prec.misspar,
+                                "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
+
+        } else {
+
+          data.jag[[i]] <- list("r" = r, "mod" = mod, "N" = N, "t" = t, "na" = na.., "nt" = nt, "ns" = ns, "ref" = ref, "M" = M, "cov.phi" = cov.misspar, "var.phi" = var.misspar,
+                                "split" = checkPair[[i]][, "split"], "m" = m[[i]], "bi" = bi[[i]], "si" = si[[i]], "pair" = pair[i, ])
+
+        } # Stop if-statement for 'assumption'
+
+
+        ## Run the Bayesian analysis
+        jagsfit[[i]] <- jags(data = data.jag[[i]], parameters.to.save = param.jags, model.file = paste0("./model/node-splitting/RE-Node-Splitting_", measure, "_Pattern-mixture_", assumption, ".txt"),
+                             n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = T)
+
+      } # Stop loop for 'pair'
+
+
+    }
 
   }
 

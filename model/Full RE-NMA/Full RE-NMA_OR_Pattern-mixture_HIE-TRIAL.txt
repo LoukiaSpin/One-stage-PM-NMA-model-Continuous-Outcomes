@@ -6,8 +6,8 @@
 #                               One-stage pattern-mixture model                               #
 #                           (Spineli et al., 2019 - PMID: 31018836)                           #
 #      Odds ratio (OR) and Informative Missingness Odds ratio (IMOR) in logarithmic scale     #
-#                           (Turner et al., 2015 - PMID: 25809313)                            #
 #                           <Hierarchical, trial-specific log IMOR>                           #
+#                           (Turner et al., 2015 - PMID: 25809313)                            #
 #                                                                                             #
 ###############################################################################################
 
