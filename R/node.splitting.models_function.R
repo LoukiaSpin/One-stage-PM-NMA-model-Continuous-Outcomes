@@ -84,7 +84,7 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
 
     } else {
 
-      pair <- apply(as.matrix(splitting), 2, as.numeric)
+      pair <- t(apply(apply(as.matrix(splitting, ncol = 2), 2, as.numeric), 1, sort))
 
 
       ## Define necessary model components
@@ -224,7 +224,7 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
     } else {
 
       ## Define node to split: AB=(1,2)
-      pair <- apply(as.matrix(splitting), 2, as.numeric)
+      pair <- t(apply(apply(as.matrix(splitting, ncol = 2), 2, as.numeric), 1, sort))
 
 
       ## Parameters to save
@@ -236,6 +236,7 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
 
 
       for(i in 1:length(pair[, 1])){
+
 
         ## Calculate split (1 if node to split is present) and b (baseline position)
         checkPair[[i]] <- PairXY(as.matrix(t), pair[i, ])

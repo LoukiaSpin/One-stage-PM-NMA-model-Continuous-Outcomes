@@ -192,7 +192,6 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
   }
 
 
-
   ## Condition for the hierarchical structure of the missingness parameter
   if (assumption == "HIE-COMMON" || assumption == "HIE-TRIAL" || assumption == "HIE-ARM") {
 
@@ -208,7 +207,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   ## Run the Bayesian analysis
   jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
-                    n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = F)
+                    n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = T)
 
 
 
@@ -221,6 +220,10 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
   effectiveness <- jagsfit$BUGSoutput$summary[(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1) + 1):(2*nt*(nt - 1)*0.5 + (nt - 1) + nt + sum(na - 1) + nt*nt), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   pred.ref <- jagsfit$BUGSoutput$summary[paste0("pred.ref[", seq(1:nt)[-ref], "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
   tau <- jagsfit$BUGSoutput$summary["tau", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")]
+  DIC <- jagsfit$BUGSoutput$DIC
+  pD <- jagsfit$BUGSoutput$pD # pD = var(deviance)/2
+  dev <- jagsfit$BUGSoutput$summary["deviance", "50%"]
+  model.assessment <- data.frame(DIC, pD, dev)
 
 
   ## Conditions to obtain the posterior distribution of the missingness parameter
@@ -256,13 +259,14 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   if(nt > 2) {
 
-    return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tau = tau, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi, ref = ref))
+     return(list(EM = EM, EM.ref = EM.ref, EM.pred = EM.pred, pred.ref = pred.ref, tau = tau, SUCRA = SUCRA, delta = delta, effectiveness = effectiveness, phi = phi, model.assessment = model.assessment, ref = ref))
 
   } else {
 
-    return(list(EM = EM, EM.pred = EM.pred, tau = tau, delta = delta, phi = phi))
+    return(list(EM = EM, EM.pred = EM.pred, tau = tau, delta = delta, phi = phi, model.assessment = model.assessment))
 
   }
+
 
 }
 
