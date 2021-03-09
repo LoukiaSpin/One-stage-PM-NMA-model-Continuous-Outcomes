@@ -277,18 +277,22 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
   }
 
 
-  ## Obtain the posterior distribution of the necessary model paramters
-  EM <- data.frame(paste0(pair[, 2], "vs", pair[, 1]), do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary[paste0("EM[", pair[i, 2], ",", pair[i, 1], "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")])))
-  colnames(EM) <- c("node", "mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")
-  direct <- data.frame(paste0(pair[, 2], "vs", pair[, 1]), do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary["direct", c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")])))
-  colnames(direct) <- c("node", "mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")
-  diff <- data.frame(paste0(pair[, 2], "vs", pair[, 1]), do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary["diff", c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")])))
-  colnames(diff) <- c("node", "mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")
-  tau <- data.frame(paste0(pair[, 2], "vs", pair[, 1]), do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary["tau", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")])))
-  colnames(tau) <- c("node", "50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")
+  ## Obtain the posterior distribution of the necessary model parameters (node: 'treat1' versus 'treat2')
+  EM <- data.frame(pair[, 2], pair[, 1], do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary[paste0("EM[", pair[i, 2], ",", pair[i, 1], "]"), c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")])))
+  colnames(EM) <- c("treat1", "treat2", "mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")
+  direct <- data.frame(pair[, 2], pair[, 1], do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary["direct", c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")])))
+  colnames(direct) <- c("treat1", "treat2", "mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")
+  diff <- data.frame(pair[, 2], pair[, 1], do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary["diff", c("mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")])))
+  colnames(diff) <- c("treat1", "treat2", "mean", "sd", "2.5%", "97.5%", "Rhat", "n.eff")
+  tau <- data.frame(pair[, 2], pair[, 1], do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary["tau", c("50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")])))
+  colnames(tau) <- c("treat1", "treat2", "50%", "sd", "2.5%", "97.5%", "Rhat", "n.eff")
+  dev <- do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$summary["deviance", "mean"]))
+  DIC <- do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$DIC))
+  pD <- do.call(rbind,lapply(1:length(pair[, 1]), function(i) jagsfit[[i]]$BUGSoutput$pD))
+  model.assessment <- data.frame(pair[, 2], pair[, 1], DIC, dev, pD)
+  colnames(model.assessment) <- c("treat1", "treat2", "DIC", "deviance", "pD")
 
-
-  return(list(EM = EM, direct = direct, diff = diff, tau = tau))
+  return(list(EM = EM, direct = direct, diff = diff, tau = tau, model.assessment = model.assessment))
 
 
 }
