@@ -3,8 +3,6 @@
 #' @export
 nodesplit.plot <- function(net, drug.names, tau.values) {
 
-  #drug.names <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N")
-  #net <- node1
 
   ## Keep results on 'direct evidence', 'indirect evidence', 'inconsistency factor', 'between-trial standard deviation',
   ## and model assessment measures (i.e., DIC, posterior mean of refisual deviance, and pD)
@@ -48,7 +46,7 @@ nodesplit.plot <- function(net, drug.names, tau.values) {
             geom_point(size = 1.5,  colour = "white", stroke = 0.3, position = position_dodge(width = 0.5)) +
             geom_text(aes(x = as.factor(evidence), y = round(mean, 2), label = round(mean, 2)), color = "black", hjust = -0.2, vjust = -0.3, size = 4.0,
                       check_overlap = F, parse = F, position = position_dodge(width = 0.8),  inherit.aes = T) +
-            geom_label(aes(3.3, y = 0, label = round(DIC, 0)), fill = "beige", colour = "black", fontface = "plain", size = 3.1) +
+            geom_label(aes(x = 3.5, y = -Inf, hjust = 0, vjust = 1, label = round(DIC, 0)), fill = "beige", colour = "black", fontface = "plain", size = 3.1) +
             facet_wrap(vars(factor(node, levels = unique(prepare$node))), scales = "free_x") +
             coord_flip() +
             labs(x = "", y = "", colour = "") +
@@ -72,7 +70,7 @@ nodesplit.plot <- function(net, drug.names, tau.values) {
             geom_point(size = 1.5,  colour = "white", stroke = 0.3, position = position_dodge(width = 0.5)) +
             geom_text(aes(x = as.factor(evidence), y = round(mean, 2), label = round(mean, 2)), color = "black", hjust = -0.2, vjust = -0.3, size = 4.0,
                       check_overlap = F, parse = F, position = position_dodge(width = 0.8),  inherit.aes = T) +
-            geom_label(aes( x = 3.5, y = -Inf, hjust = 0, vjust = 1, label = round(DIC, 0)), fill = "beige", colour = "black", fontface = "plain", size = 3.1) +
+            geom_label(aes(x = 3.5, y = -Inf, hjust = 0, vjust = 1, label = round(DIC, 0)), fill = "beige", colour = "black", fontface = "plain", size = 3.1) +
             facet_wrap(vars(factor(node, levels = unique(prepare$node))), scales = "free_x") +
             coord_flip() +
             labs(x = "", y = "", colour = "") +
