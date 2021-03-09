@@ -215,7 +215,7 @@ run.nodesplit <- function(data, measure, assumption, mean.misspar, var.misspar, 
 
     if(dim(splitting)[1] < 1) {
 
-      stop("There is no loop to evaluate", call. = FALSE)
+      stop("There is no loop to evaluate", call. = F)
 
       suppressMessages({
         message("Called from: netmodr::run.nodesplit")
