@@ -1,4 +1,4 @@
-# Perform network meta-analysis for an aggregate binary or continuous outcome with missing participant data
+# Perform network meta-analysis for an aggregate continuous outcome with missing participant data
 #
 # data: A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. See 'Format' for the specification of the columns.
 # measure: Character string indicating the effect measure with values "MD", "SMD", or "ROM".
