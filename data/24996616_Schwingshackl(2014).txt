@@ -1,0 +1,33 @@
+Trial	t1	t2	t3	y1	y2	y3	se1	se2	se3	m1	m2	m3	c1	c2	c3							
+1	1	2	NA	-0.4	-0.35	NA	0.10	0.11	NA	1	1	NA	19	19	NA			
+2	1	2	3	-0.12	-0.04	-0.23	0.10	0.09	0.09	0	0	0	72	73	76			
+3	1	2	3	7.42	8.24	7.53	0.43	0.61	0.30	0	0	0	12	12	12			
+4	1	2	3	-0.6	-0.2	-0.9	0.10	0.05	0.09	0	0	0	21	23	22			
+5	1	2	NA	-0.6	-0.3	NA	0.31	0.25	NA	0	0	NA	15	13	NA			
+6	1	2	NA	-0.53	-0.35	NA	0.13	0.12	NA	1	2	NA	12	11	NA			
+7	1	2	NA	-0.3	-0.4	NA	0.16	0.11	NA	0	0	NA	30	30	NA			
+8	1	2	3	-0.43	-0.3	-0.9	0.12	0.12	0.12	11	8	6	49	56	58			
+9	1	2	NA	-0.1	-0.1	NA	0.17	0.31	NA	4	4	NA	9	9	NA			
+10	1	2	3	-1.33	-0.55	-1.74	0.24	0.11	0.22	5	5	5	15	15	15			
+11	1	3	NA	6.34	6.65	NA	0.21	0.23	NA	0	0	NA	20	22	NA			
+12	1	3	NA	-0.1	-0.1	NA	0.11	0.22	NA	0	0	NA	9	10	NA			
+13	1	3	NA	6.9	7.2	NA	0.20	0.20	NA	1	0	NA	21	24	NA			
+14	1	3	NA	7	6.9	NA	0.37	0.28	NA	1	2	NA	18	17	NA			
+																																			
+# Interventions' names
+# 1: aerobic, 2: resistance, 3: combined training																																		
+
+# Article
+# Schwingshackl L, Missbach B, Dias S, et al. Impact of different training modalities on glycaemic control and blood lipids
+# in patients with type 2 diabetes: a systematic review and network meta-analysis. Diabetologia 2014; 57: 1789–1797.																																			
+																																			
+																																			
+																																			
+																																			
+																																			
+																																			
+																																			
+																																			
+																																			
+																																			
+																																			
