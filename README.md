@@ -40,55 +40,18 @@ Then, for each assumption, the prior distribution of the missingness parameter c
 In systematic reviews, mean difference and standardised mean difference are the most popular effect measures for continuous outcomes [4, 5]. A less popular effect measure for continuous outcomes is the ratio of (arithmetic) means which has been advocated for its ease of interpretation (as compared to  standardised mean difference) and its ability to pool trials with outcomes in different units (contrary to mean difference) [6]. 
 
 
-## Installation
+## Description of the repository
 
-We have developed the R function <span style="color: blue;">`NMA.IMDOM.IMROM.PM.model()`</span> to handle MCOD in network meta-analysis efficiently using the informative missingness parameters and effect measures described above. The IMDoM parameter is intuitively related to the mean difference and the standardised mean difference, whereas the IMRoM parameter can be used in conjunction with the ratio of means in the logarithmic scale. Before using the R function, it is necessary to install the libraries `dplyr` and `R2jags` to allow the function to perform a required data management and to implement Bayesian analysis in [JAGS](https://sourceforge.net/projects/mcmc-jags/) (in case JAGS is not downloaded yet). 
+We have developed the R function <span style="color: blue;">`run.model()`</span> to handle MCOD in network meta-analysis efficiently using the informative missingness parameters and effect measures described above. The IMDoM parameter is intuitively related to the mean difference and the standardised mean difference, whereas the IMRoM parameter can be used in conjunction with the ratio of means in the logarithmic scale. Before using the R function, it is necessary to install the libraries `dplyr` and `R2jags` to allow the function to perform a required data management and to implement Bayesian analysis in [JAGS](https://sourceforge.net/projects/mcmc-jags/) (in case JAGS is not downloaded yet). 
 
-You can download the __package__ with the proposed function directly from [GitHub](https://github.com/LoukiaSpin/One-stage-PM-NMA-model-Continuous-Outcomes/) or use the R package [devtools](https://cran.r-project.org/web/packages/devtools/index.html):
-
-```r
-install.packages("devtools")
-devtools::install_github("LoukiaSpin/Quantifying-Robustness-in-Meta-analysis", build_vignettes = T)
-```
-To obtain the necessary results for all assumptions and structures about the missingness parameter, we have intergrated the function `collect jags results Full NMA PM Continuous_function()` in our main function `NMA.IMDOM.IMROM.PM.model()`.
 
 ### Required format of the dataset 
 
-To use this R function, the dataset must have a wide-format structure, where every trial occupies one row and every intervention-arm occupies one column. An additional column, *NMA*, is needed to indicate the number of networks that comprise the dataset - even if there is only one network in the dataset.
+To use this R function, the dataset must have a wide-format structure, where every trial occupies one row and every intervention-arm occupies one column. 
 
+The function provides results on the pooled mean difference for all possible comparisons, the within-trial mean difference, the common between-trial variance, the SUCRA values of the interventions, the order of the interventions, and the estimated missingness parameter according to the assumption. Furthermore, it provides results for the predictions of all possible comparisons. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
 
-Then, the output is a series of text-files and it is saved __automatically__ in the folder <span style="color: blue;">__Output__</span>:
-
-* Pattern-mixture IMDOM & IMROM model
-  + Model scripts
-    + Full NMA model
-      + Fixed-effect model
-        + Mean Difference
-        + Ratio of Means
-        + Standardised Mean Difference
-      + Random-effects model
-        + Mean Difference
-        + Ratio of Means
-        + Standardised Mean Difference
-  + <span style="color: blue;">__Output__</span>
-    + <span style="color: blue;">Data</span>
-      + <span style="color: blue;">Full NMA models</span>
-        + <span style="color: blue;">Fixed-effect model</span>
-          + <span style="color: blue;">Mean Difference</span>
-          + <span style="color: blue;">Ratio of Means</span>
-          + <span style="color: blue;">Standardised Mean Difference</span>
-        + <span style="color: blue;">Random-effects model</span>
-          + <span style="color: blue;">Mean Difference</span>
-          + <span style="color: blue;">Ratio of Means</span>
-          + <span style="color: blue;">Standardised Mean Difference</span>
-  + R scripts
-    + Functions
-      + Full NMA model
-
-
-The function creates automatically a sub-folder for each assumption, where it 'drops' the corrresponding text files that refer to the results on the pooled mean difference for all possible comparisons, the within-trial mean difference, the common between-trial variance, the SUCRA values of the interventions, the order of the interventions, and the estimated missingness parameter according to the assumption. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
-
-Currently, the R function `NMA.IMDOM.IMROM.PM.model()` displays a list of results on the aforementioned model parameters for each assumption about the missingness parameter. 
+Currently, the R function `run.model()` displays a list of results on the aforementioned model parameters for each assumption about the missingness parameter. 
 We plan to replace this output with proper illustration, such as forestplots for the pooled effect sizes and barplots for the SUCRA values to visualise the results under all assumptions simultaneously.
 
 
