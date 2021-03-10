@@ -43,8 +43,8 @@ In systematic reviews, mean difference and standardised mean difference are the 
 ## Description of the repository
 
 The repository includes separate folders for data, models and R (code/scripts), respectively.
-* The _data_ folder includes two input text files: 21370258_Stowe(2011).txt and 24996616_Schwingshackl(2014).txt, These are the examples that we considered in our article.
-* The _models_ folder includes text files on for the proposed Bayesian random-effects network meta-analysis models for aggregate outcomes with missing outcome data;
+* The _data_ folder includes two input text files: 21370258_Stowe(2011).txt and 24996616_Schwingshackl(2014).txt. These are the examples that we considered in our article.
+* The _model_ folder includes text files on the proposed Bayesian random-effects network meta-analysis models for aggregate outcomes with missing outcome data;
 * The _R_ folder includes the function <span style="color: blue;">`run.model()`</span> to handle MCOD in network meta-analysis efficiently using the informative missingness parameters and effect measures described above. The IMDoM parameter is intuitively related to the mean difference and the standardised mean difference, whereas the IMRoM parameter can be used in conjunction with the ratio of means in the logarithmic scale. 
 
 Before using the R function, it is necessary to install the libraries `dplyr` and `R2jags` to allow the function to perform a required data management and to implement Bayesian analysis in [JAGS](https://sourceforge.net/projects/mcmc-jags/) (in case JAGS is not downloaded yet). 
@@ -72,7 +72,7 @@ run.model(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.i
 
 #### Output of the function
 
-The function returns results on the pooled mean difference for all possible comparisons, the within-trial mean difference, the common between-trial variance, the SUCRA values of the interventions, the order of the interventions, and the estimated missingness parameter according to the assumption. Furthermore, it provides results for the predictions of all possible comparisons. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
+The function returns results on the pooled effect estimate (mead difference, standardised mean differnce, or ratio of means in the log scale) for all possible comparisons, the within-trial effect estimate, the common between-trial standard deviation, the SUCRA values of each intervention, the ranking probability of each intervention for every ranking, and the estimated missingness parameter according to the assumption. Furthermore, it provides results for the predictions of all possible comparisons. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
 
 Currently, the R function `run.model()` displays a list of results on the aforementioned model parameters for each assumption about the missingness parameter. 
 We plan to replace this output with proper illustration, such as forestplots for the pooled effect sizes and barplots for the SUCRA values to visualise the results under all assumptions simultaneously.
