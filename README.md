@@ -42,7 +42,12 @@ In systematic reviews, mean difference and standardised mean difference are the 
 
 ## Description of the repository
 
-We have developed the R function <span style="color: blue;">`run.model()`</span> to handle MCOD in network meta-analysis efficiently using the informative missingness parameters and effect measures described above. The IMDoM parameter is intuitively related to the mean difference and the standardised mean difference, whereas the IMRoM parameter can be used in conjunction with the ratio of means in the logarithmic scale. Before using the R function, it is necessary to install the libraries `dplyr` and `R2jags` to allow the function to perform a required data management and to implement Bayesian analysis in [JAGS](https://sourceforge.net/projects/mcmc-jags/) (in case JAGS is not downloaded yet). 
+The repository includes separate folders for data, models and R (code/scripts), respectively.
+* The _data_ folder includes two input text files: X.txt and X.txt, These are the examples that we considered in our article.
+* The _models_ folder includes text files on for the proposed Bayesian random-effects network meta-analysis models for aggregate outcomes with missing outcome data;
+* The _R_ folder includes the function <span style="color: blue;">`run.model()`</span> to handle MCOD in network meta-analysis efficiently using the informative missingness parameters and effect measures described above. The IMDoM parameter is intuitively related to the mean difference and the standardised mean difference, whereas the IMRoM parameter can be used in conjunction with the ratio of means in the logarithmic scale. 
+
+Before using the R function, it is necessary to install the libraries `dplyr` and `R2jags` to allow the function to perform a required data management and to implement Bayesian analysis in [JAGS](https://sourceforge.net/projects/mcmc-jags/) (in case JAGS is not downloaded yet). 
 
 
 ### Required format of the dataset 
