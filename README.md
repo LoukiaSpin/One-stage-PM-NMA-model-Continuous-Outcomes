@@ -58,7 +58,7 @@ run.model(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.i
 
 #### Explaining the arguments
 
-* data: A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. See 'Format' for the specification of the columns.
+* data: A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. 
 * measure: Character string indicating the effect measure with values "MD", "SMD", or "ROM".
 * assumption: Character string indicating the structure of the informative missingness parameter. Set assumption equal to one of the following: "HIE-COMMON", "HIE-TRIAL", "HIE-ARM", "IDE-COMMON", "IDE-TRIAL", "IDE-ARM", "IND-CORR", or "IND-UNCORR".
 * mean.misspar: A positive non-zero number for the mean of the normal distribution of the informative missingness parameter.
@@ -72,10 +72,10 @@ run.model(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.i
 
 #### Output of the function
 
-The function returns results on the pooled effect estimate (mead difference, standardised mean differnce, or ratio of means in the log scale) for all possible comparisons, the within-trial effect estimate, the common between-trial standard deviation, the SUCRA values of each intervention, the ranking probability of each intervention for every ranking, and the estimated missingness parameter according to the assumption. Furthermore, it provides results for the predictions of all possible comparisons. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
+The function returns results on the pooled effect estimate (mean difference, standardised mean difference, or ratio of means in the log scale) for all possible comparisons, the within-trial effect estimate, the common between-trial standard deviation, the SUCRA values of each intervention, the ranking probability of each intervention for every ranking, and the estimated missingness parameter according to the assumption. Furthermore, it provides results for the predictions of all possible comparisons. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
 
 Currently, the R function `run.model()` displays a list of results on the aforementioned model parameters for each assumption about the missingness parameter. 
-We plan to replace this output with proper illustration, such as forestplots for the pooled effect sizes and barplots for the SUCRA values to visualise the results under all assumptions simultaneously.
+We plan to replace this output with proper illustration, such as forestplots for the pooled effect sizes and barplots for the SUCRA values.
 
 
 ## References
