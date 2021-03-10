@@ -1,34 +1,34 @@
-# Perform network meta-analysis for an aggregate continuous outcome with missing participant data
-#
-# data: A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. See 'Format' for the specification of the columns.
-# measure: Character string indicating the effect measure with values "MD", "SMD", or "ROM".
-# assumption: Character string indicating the structure of the informative missingness parameter. Set assumption equal to one of the following: "HIE-COMMON", "HIE-TRIAL", "HIE-ARM", "IDE-COMMON", "IDE-TRIAL", "IDE-ARM", "IND-CORR", or "IND-UNCORR".
-# mean.misspar: A positive non-zero number for the mean of the normal distribution of the informative missingness parameter.
-# var.misspar: A positive non-zero number for the variance of the normal distribution of the informative missingness parameter.
-# D: A binary number for the direction of the outcome. Set D = 1 for a positive outcome and D = 0 for a negative outcome.
-# n.chains: Integer specifying the number of chains for the MCMC sampling; an argument of the jags function in R2jags.
-# n.iter: Integer specifying the number of Markov chains for the MCMC sampling; an argument of the jags function in R2jags.
-# n.burnin: Integer specifying the number of iterations to discard at the beginning of the MCMC sampling; an argument of the jags function in R2jags.
-# n.thin: Integer specifying the thinning rate for the MCMC sampling; an argument of the jags function in R2jags.
-#
-# OUTPUT
-# It returns sn R2jags output on the summaries of the posterior distribution, and the Gelman–Rubin convergence diagnostic of the following parameters:
-# EM, the effect estimate of all possible comparisons of interventions.
-# SUCRA, the surface under the cumulative ranking curve for each intervention.
-# phi, the informative missingness parameter.
-# delta, the underlying trial-specific effect estimate. For a multi-arm trial, we estimate T-1 trial-specific effect estimates, where T is the number of interventions in the trial.
-# tau, The between-trial standard deviation assumed to be common for all observed comparisons.
-# 
-# FORMAT
-# The columns of the data (a data frame) refer to the following ordered elements for a continuous outcome:
-# t, an intervention identifier.
-# y, the observed mean value of the outcome.
-# se, the observed standard error of the outcome.
-# m, the number of missing outcome data.
-# c, the number of participants completing the assigned intervention.
-# na, the number of compared interventions.
-#
-# Apart from na, all other elements appear in data as many times as the maximum number of interventions compared in a trial.
+## Perform network meta-analysis for an aggregate continuous outcome with missing participant data
+##
+## data: A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. See 'Format' for the specification of the columns.
+## measure: Character string indicating the effect measure with values "MD", "SMD", or "ROM".
+## assumption: Character string indicating the structure of the informative missingness parameter. Set assumption equal to one of the following: "HIE-COMMON", "HIE-TRIAL", "HIE-ARM", "IDE-COMMON", "IDE-TRIAL", "IDE-ARM", "IND-CORR", or "IND-UNCORR".
+## mean.misspar: A positive non-zero number for the mean of the normal distribution of the informative missingness parameter.
+## var.misspar: A positive non-zero number for the variance of the normal distribution of the informative missingness parameter.
+## D: A binary number for the direction of the outcome. Set D = 1 for a positive outcome and D = 0 for a negative outcome.
+## n.chains: Integer specifying the number of chains for the MCMC sampling; an argument of the jags function in R2jags.
+## n.iter: Integer specifying the number of Markov chains for the MCMC sampling; an argument of the jags function in R2jags.
+## n.burnin: Integer specifying the number of iterations to discard at the beginning of the MCMC sampling; an argument of the jags function in R2jags.
+## n.thin: Integer specifying the thinning rate for the MCMC sampling; an argument of the jags function in R2jags.
+##
+## OUTPUT
+## It returns sn R2jags output on the summaries of the posterior distribution, and the Gelman–Rubin convergence diagnostic of the following parameters:
+## EM, the effect estimate of all possible comparisons of interventions.
+## SUCRA, the surface under the cumulative ranking curve for each intervention.
+## phi, the informative missingness parameter.
+## delta, the underlying trial-specific effect estimate. For a multi-arm trial, we estimate T-1 trial-specific effect estimates, where T is the number of interventions in the trial.
+## tau, The between-trial standard deviation assumed to be common for all observed comparisons.
+## 
+## FORMAT
+## The columns of the data (a data frame) refer to the following ordered elements for a continuous outcome:
+## t, an intervention identifier.
+## y, the observed mean value of the outcome.
+## se, the observed standard error of the outcome.
+## m, the number of missing outcome data.
+## c, the number of participants completing the assigned intervention.
+## na, the number of compared interventions.
+##
+## Apart from na, all other elements appear in data as many times as the maximum number of interventions compared in a trial.
 
 run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.iter, n.burnin, n.thin){
 
