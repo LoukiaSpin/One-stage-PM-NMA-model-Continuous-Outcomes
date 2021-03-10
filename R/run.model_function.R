@@ -11,6 +11,7 @@
 # n.burnin: Integer specifying the number of iterations to discard at the beginning of the MCMC sampling; an argument of the jags function in R2jags.
 # n.thin: Integer specifying the thinning rate for the MCMC sampling; an argument of the jags function in R2jags.
 #
+# OUTPUT
 # It returns sn R2jags output on the summaries of the posterior distribution, and the Gelman–Rubin convergence diagnostic of the following parameters:
 # EM, the effect estimate of all possible comparisons of interventions.
 # SUCRA, the surface under the cumulative ranking curve for each intervention.
@@ -18,10 +19,11 @@
 # delta, the underlying trial-specific effect estimate. For a multi-arm trial, we estimate T-1 trial-specific effect estimates, where T is the number of interventions in the trial.
 # tau, The between-trial standard deviation assumed to be common for all observed comparisons.
 # 
+# FORMAT
 # The columns of the data (a data frame) refer to the following ordered elements for a continuous outcome:
 # t, an intervention identifier.
 # y, the observed mean value of the outcome.
-# sd, the observed standard deviation of the outcome.
+# se, the observed standard error of the outcome.
 # m, the number of missing outcome data.
 # c, the number of participants completing the assigned intervention.
 # na, the number of compared interventions.
@@ -32,10 +34,10 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
   ## Continuous: arm-level, wide-format dataset
   (y.obs <- data %>% dplyr::select(starts_with("y")))             # Observed mean value in each arm of every trial
-  (sd.obs <- data %>% dplyr::select(starts_with("sd")))           # Observed standard deviation in each arm of every trial
+  (se.obs <- data %>% dplyr::select(starts_with("se")))           # Observed standard error in each arm of every trial
   (mod <- data %>% dplyr::select(starts_with("m")))               # Number of missing participants in each arm of every trial
   (c <- data %>% dplyr::select(starts_with("c")))                 # Number of completers in each arm of every trial
-  (se.obs <- sd.obs/sqrt(c))                                      # Observed standard error in each arm of every trial
+  (sd.obs <- se.obs*c)                                            # Observed standard deviation in each arm of every trial
   (rand <- mod + c)                                               # Number of randomised participants in each arm of every trial
   (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
   na <- apply(treat, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
