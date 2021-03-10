@@ -39,7 +39,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
   (se.obs <- data %>% dplyr::select(starts_with("se")))           # Observed standard error in each arm of every trial
   (mod <- data %>% dplyr::select(starts_with("m")))               # Number of missing participants in each arm of every trial
   (c <- data %>% dplyr::select(starts_with("c")))                 # Number of completers in each arm of every trial
-  (sd.obs <- se.obs*c)                                            # Observed standard deviation in each arm of every trial
+  (sd.obs <- se.obs*sqrt(c))                                      # Observed standard deviation in each arm of every trial
   (rand <- mod + c)                                               # Number of randomised participants in each arm of every trial
   (treat <- data %>% dplyr::select(starts_with("t")))             # Intervention studied in each arm of every trial
   na <- apply(treat, 1, function(x) length(which(!is.na(x))))     # Number of interventions investigated in every trial per network
