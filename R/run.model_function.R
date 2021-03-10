@@ -117,7 +117,7 @@ run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n
 
 
   ## Run the Bayesian analysis
-  jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
+  jagsfit <- jags(data = data.jag, parameters.to.save = param.jags, model.file = paste0("./model/Full RE-NMA_", measure, "_Pattern-mixture_", assumption, ".txt"),
                     n.chains = n.chains, n.iter = n.iter, n.burnin = n.burnin, n.thin = n.thin, DIC = T)
 
 
