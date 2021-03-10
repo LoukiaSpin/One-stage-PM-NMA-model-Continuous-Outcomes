@@ -50,11 +50,29 @@ The repository includes separate folders for data, models and R (code/scripts), 
 Before using the R function, it is necessary to install the libraries `dplyr` and `R2jags` to allow the function to perform a required data management and to implement Bayesian analysis in [JAGS](https://sourceforge.net/projects/mcmc-jags/) (in case JAGS is not downloaded yet). 
 
 
-### Required format of the dataset 
+### Perform Bayesian random-effects network meta-analysis to handle aggregate MCOD
 
-To use this R function, the dataset must have a wide-format structure, where every trial occupies one row and every intervention-arm occupies one column. 
+```r
+run.model(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.iter, n.burnin, n.thin)
+```
 
-The function provides results on the pooled mean difference for all possible comparisons, the within-trial mean difference, the common between-trial variance, the SUCRA values of the interventions, the order of the interventions, and the estimated missingness parameter according to the assumption. Furthermore, it provides results for the predictions of all possible comparisons. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
+#### Explaining the arguments
+
+* data: A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. See 'Format' for the specification of the columns.
+* measure: Character string indicating the effect measure with values "MD", "SMD", or "ROM".
+* assumption: Character string indicating the structure of the informative missingness parameter. Set assumption equal to one of the following: "HIE-COMMON", "HIE-TRIAL", "HIE-ARM", "IDE-COMMON", "IDE-TRIAL", "IDE-ARM", "IND-CORR", or "IND-UNCORR".
+* mean.misspar: A positive non-zero number for the mean of the normal distribution of the informative missingness parameter.
+* var.misspar: A positive non-zero number for the variance of the normal distribution of the informative missingness parameter.
+* D: A binary number for the direction of the outcome. Set D = 1 for a positive outcome and D = 0 for a negative outcome.
+* n.chains: Integer specifying the number of chains for the MCMC sampling; an argument of the jags function in R2jags.
+* n.iter: Integer specifying the number of Markov chains for the MCMC sampling; an argument of the jags function in R2jags.
+* n.burnin: Integer specifying the number of iterations to discard at the beginning of the MCMC sampling; an argument of the jags function in R2jags.
+* n.thin: Integer specifying the thinning rate for the MCMC sampling; an argument of the jags function in R2jags.
+
+
+#### Output of the function
+
+The function returns results on the pooled mean difference for all possible comparisons, the within-trial mean difference, the common between-trial variance, the SUCRA values of the interventions, the order of the interventions, and the estimated missingness parameter according to the assumption. Furthermore, it provides results for the predictions of all possible comparisons. For the aforementioned parameters, we obtain the posterior distribution as provided by the `jags()` function alongside the Rubin and Gelman Rhat statistics. 
 
 Currently, the R function `run.model()` displays a list of results on the aforementioned model parameters for each assumption about the missingness parameter. 
 We plan to replace this output with proper illustration, such as forestplots for the pooled effect sizes and barplots for the SUCRA values to visualise the results under all assumptions simultaneously.
