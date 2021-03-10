@@ -1,3 +1,4 @@
+##----------------------------------------------------------------------------------------------------------------------------
 ## Perform network meta-analysis for an aggregate continuous outcome with missing participant data
 ##
 ## data: A data-frame of a one-trial-per-row format containing arm-level data of each trial. This format is widely used for BUGS models. See 'Format' for the specification of the columns.
@@ -29,6 +30,7 @@
 ## na, the number of compared interventions.
 ##
 ## Apart from na, all other elements appear in data as many times as the maximum number of interventions compared in a trial.
+##----------------------------------------------------------------------------------------------------------------------------
 
 run.model <- function(data, measure, assumption, mean.misspar, var.misspar, D, n.chains, n.iter, n.burnin, n.thin){
 
