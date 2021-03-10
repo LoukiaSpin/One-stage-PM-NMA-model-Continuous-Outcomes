@@ -1,4 +1,4 @@
-Trial	t1	t2	t3	y1	y2	y3	se1	se2	se3	m1	m2	m3	c1	c2	c3							
+id	t1	t2	t3	y1	y2	y3	se1	se2	se3	m1	m2	m3	c1	c2	c3							
 1	1	2	NA	-0.3	-1.2	NA	0.50	0.48	NA	7	3	NA	76	81	NA				
 2	1	2	NA	-2.47	-3.33	NA	1.13	0.93	NA	8	9	NA	12	14	NA				
 3	1	2	NA	-0.7	-2	NA      0.56	0.55	NA	2	1	NA	16	18	NA				
